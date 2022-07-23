@@ -20,12 +20,13 @@ from PIL import Image
 import matplotlib.pyplot as plt 
 import json
 import os
+import random
 
 import SimpleITK as sitk
 
 
 class BraTS_TrainingDataset():
-    def __init__(self, path):
+    def __init__(self, path, test_cases, seed):
         self.path = path # this should be the root dir for extracted files
         self.imgTr_dir = os.path.join(path, 'imagesTr')
         self.labelsTr_dir = os.path.join(path, 'labelsTr')
@@ -39,9 +40,15 @@ class BraTS_TrainingDataset():
         self.imagesTr_paths = []
         self.labelsTr_paths = []
         
-        for img, label in zip(os.listdir(self.imgTr_dir), os.listdir(self.labelsTr_dir)):
-            self.imagesTr.append(img)
-            self.labelsTr.append(label)
+        self.image_names = os.listdir(self.imgTr_dir)
+        
+        random.seed(seed)
+        validation_patients = random.sample(self.image_names, k=test_cases)
+        self.image_names = sorted(list(set(self.image_names).difference(validation_patients)))
+        
+        for img_name in self.image_names:
+            self.imagesTr.append(img_name)
+            self.labelsTr.append(img_name)
         
     def __getitem__(self, idx):
         """
@@ -54,11 +61,12 @@ class BraTS_TrainingDataset():
         img_filename = self.imagesTr[idx]
         img_path = os.path.join(self.imgTr_dir, img_filename)
         img = np.load(img_path)
-        
+
         # load label
         label_filename = self.labelsTr[idx]
         label_path = os.path.join(self.labelsTr_dir, label_filename)
         label = np.load(label_path)
+        label = np.expand_dims(label, axis=0)
         
         item = {
             'image': img,
@@ -76,18 +84,29 @@ class BraTS_TrainingDataset():
 
 
 class BraTS_TestDataset():
-    def __init__(self, path, device='cpu'):
+    def __init__(self, path, test_cases, seed):
         self.path = path # this should be the root dir for extracted files
-        self.imgTs_dir = os.path.join(path, 'imagesTs')
+        self.imgTr_dir = os.path.join(path, 'imagesTr')
+        self.labelsTr_dir = os.path.join(path, 'labelsTr')
         
-        print(self.imgTs_dir)
+        print(self.imgTr_dir)
+        print(self.labelsTr_dir)
         
-        self.imagesTs = []
-        self.imagesTs_paths = []
+        self.imagesTr = []
+        self.labelsTr = []
         
-        for img in os.listdir(self.imgTs_dir):
-            self.imagesTs.append(img)
-            
+        self.imagesTr_paths = []
+        self.labelsTr_paths = []
+        
+        
+        self.image_names = os.listdir(self.imgTr_dir)
+        random.seed(seed)
+        self.image_names = random.sample(self.image_names, k=test_cases)
+        
+        for img_name in self.image_names:
+            self.imagesTr.append(img_name)
+            self.labelsTr.append(img_name)
+        
     def __getitem__(self, idx):
         """
         Loads and returns a single sample in the form of a dictionary
@@ -95,17 +114,30 @@ class BraTS_TestDataset():
         The function returns the sample at the given index (idx)
         by finding the path and returning the numpy array.
         """
-        # load test image
-        img_filename = self.imagesTs[idx]
-        img_path = os.path.join(self.imgTs_dir, img_filename)
+        # load image
+        img_filename = self.imagesTr[idx]
+        img_path = os.path.join(self.imgTr_dir, img_filename)
         img = np.load(img_path)
-        return img
+        
+        # load label
+        label_filename = self.labelsTr[idx]
+        label_path = os.path.join(self.labelsTr_dir, label_filename)
+        label = np.load(label_path)
+        label = np.expand_dims(label, axis=0)
+        
+        item = {
+            'image': img,
+            'label': label
+        }
+        return item
     
     def __len__(self):
         """
-        Returns the number of test-files.
+        Returns the number of training-files and checks
+        if it is equal to the number of training-labels.
         """
-        return len(self.imagesTs)
+        assert len(self.imagesTr) == len(self.labelsTr)
+        return len(self.imagesTr)
 
 
 def plot_batch(batch, num_rows=2, height=70):
