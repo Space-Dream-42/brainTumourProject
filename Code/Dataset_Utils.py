@@ -163,5 +163,5 @@ def decrop_batch(img_batch):
     but also works on just a single image.
     Output size per slice is (240, 240).
     """
-    decropped_batch = F.pad(out, (38,41,19,30), 'constant', 0)
+    decropped_batch = F.pad(img_batch, (38,41,19,30), 'constant', 0)
     return decropped_batch
