@@ -11,30 +11,30 @@ class UNet(nn.Module):
 
         features = init_features
         self.encoder1 = UNet._block(in_channels, features, name="enc1")
-        self.pool1 = nn.MaxPool2d(kernel_size=2, stride=1)
+        self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
         self.encoder2 = UNet._block(features, features * 2, name="enc2")
-        self.pool2 = nn.MaxPool2d(kernel_size=2, stride=1)
+        self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
         self.encoder3 = UNet._block(features * 2, features * 4, name="enc3")
-        self.pool3 = nn.MaxPool2d(kernel_size=2, stride=1)
+        self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
         self.encoder4 = UNet._block(features * 4, features * 8, name="enc4")
-        self.pool4 = nn.MaxPool2d(kernel_size=2, stride=1)
+        self.pool4 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.bottleneck = UNet._block(features * 8, features * 16, name="bottleneck")
 
         self.upconv4 = nn.ConvTranspose2d(
-            features * 16, features * 8, kernel_size=2, stride=1
+            features * 16, features * 8, kernel_size=2, stride=2
         )
         self.decoder4 = UNet._block((features * 8) * 2, features * 8, name="dec4")
         self.upconv3 = nn.ConvTranspose2d(
-            features * 8, features * 4, kernel_size=2, stride=1
+            features * 8, features * 4, kernel_size=2, stride=2
         )
         self.decoder3 = UNet._block((features * 4) * 2, features * 4, name="dec3")
         self.upconv2 = nn.ConvTranspose2d(
-            features * 4, features * 2, kernel_size=2, stride=1
+            features * 4, features * 2, kernel_size=2, stride=2
         )
         self.decoder2 = UNet._block((features * 2) * 2, features * 2, name="dec2")
         self.upconv1 = nn.ConvTranspose2d(
-            features * 2, features, kernel_size=2, stride=1
+            features * 2, features, kernel_size=2, stride=2
         )
         self.decoder1 = UNet._block(features * 2, features, name="dec1")
 
@@ -49,7 +49,6 @@ class UNet(nn.Module):
         enc4 = self.encoder4(self.pool3(enc3))
 
         bottleneck = self.bottleneck(self.pool4(enc4))
-
         dec4 = self.upconv4(bottleneck)
         dec4 = torch.cat((dec4, enc4), dim=1)
         dec4 = self.decoder4(dec4)
@@ -62,7 +61,8 @@ class UNet(nn.Module):
         dec1 = self.upconv1(dec2)
         dec1 = torch.cat((dec1, enc1), dim=1)
         dec1 = self.decoder1(dec1)
-        return torch.sigmoid(self.conv(dec1))
+        #return torch.sigmoid(self.conv(dec1))
+        return self.conv(dec1)
 
     @staticmethod
     def _block(in_channels, features, name):
