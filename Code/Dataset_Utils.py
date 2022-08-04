@@ -90,24 +90,22 @@ def split_cube(batch):
     """
     minicube_batch = dict()
     
-    # padding:
-    # add empty slice to make number of slices divisible by 2
-    # -> new number of slices is 156
-    image_padding = (0,0, 0,0, 1,0, 0,0, 0,0)
-    label_padding = (0,0, 0,0, 1,0, 0,0)
+    # add zero-padding slices
+    image_padding = (0,0, 0,0, 3,2, 0,0, 0,0)
+    label_padding = (0,0, 0,0, 3,2, 0,0)
     batch['image'] = F.pad(batch['image'], image_padding, 'constant', 0)
     batch['label'] = F.pad(batch['label'], label_padding, 'constant', 0)
     
     # split images
-    minicube_batch0 = batch['image'][:, :, :78, :96,  :96]
-    minicube_batch1 = batch['image'][:, :, :78, :96,   96:]
-    minicube_batch2 = batch['image'][:, :, :78,  96:, :96]
-    minicube_batch3 = batch['image'][:, :, :78,  96:,  96:]
+    minicube_batch0 = batch['image'][:, :, :80, :96,  :96]
+    minicube_batch1 = batch['image'][:, :, :80, :96,   96:]
+    minicube_batch2 = batch['image'][:, :, :80,  96:, :96]
+    minicube_batch3 = batch['image'][:, :, :80,  96:,  96:]
     
-    minicube_batch4 = batch['image'][:, :, 78:, :96,  :96]
-    minicube_batch5 = batch['image'][:, :, 78:, :96,   96:]
-    minicube_batch6 = batch['image'][:, :, 78:,  96:, :96]
-    minicube_batch7 = batch['image'][:, :, 78:,  96:,  96:]
+    minicube_batch4 = batch['image'][:, :, 80:, :96,  :96]
+    minicube_batch5 = batch['image'][:, :, 80:, :96,   96:]
+    minicube_batch6 = batch['image'][:, :, 80:,  96:, :96]
+    minicube_batch7 = batch['image'][:, :, 80:,  96:,  96:]
     
     # assemble minicubes into batch
     minicube_batch['image'] = torch.cat(
@@ -115,15 +113,15 @@ def split_cube(batch):
          minicube_batch4, minicube_batch5, minicube_batch6, minicube_batch7), 0)
     
     # split labels
-    label_batch0 = batch['label'][:, :78, :96,  :96]
-    label_batch1 = batch['label'][:, :78, :96,   96:]
-    label_batch2 = batch['label'][:, :78,  96:, :96]
-    label_batch3 = batch['label'][:, :78,  96:,  96:]
+    label_batch0 = batch['label'][:, :80, :96,  :96]
+    label_batch1 = batch['label'][:, :80, :96,   96:]
+    label_batch2 = batch['label'][:, :80,  96:, :96]
+    label_batch3 = batch['label'][:, :80,  96:,  96:]
     
-    label_batch4 = batch['label'][:, 78:, :96,  :96]
-    label_batch5 = batch['label'][:, 78:, :96,   96:]
-    label_batch6 = batch['label'][:, 78:,  96:, :96]
-    label_batch7 = batch['label'][:, 78:,  96:,  96:]
+    label_batch4 = batch['label'][:, 80:, :96,  :96]
+    label_batch5 = batch['label'][:, 80:, :96,   96:]
+    label_batch6 = batch['label'][:, 80:,  96:, :96]
+    label_batch7 = batch['label'][:, 80:,  96:,  96:]
     
     # assemble labels into batch
     minicube_batch['label'] = torch.cat(
