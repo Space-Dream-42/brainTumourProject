@@ -1,7 +1,8 @@
 # This file provides the following utility functions and classes:
 # BraTS_TrainingDataset class
-# BraTS_TestDataset class
+# split_cube function for getting minicubes
 # plot_batch function
+# crop_batch and decrop_batch functions
 
 import torch
 import torchvision as tv
@@ -26,7 +27,7 @@ import SimpleITK as sitk
 
 class BraTS_TrainingDataset():
     def __init__(self, path):
-        self.path = path # this should be the root dir for extracted files
+        self.path = path # this should be the root dir for extracted (or cropped) files
         self.imgTr_dir = os.path.join(path, 'imagesTr')
         self.labelsTr_dir = os.path.join(path, 'labelsTr')
         
@@ -75,37 +76,57 @@ class BraTS_TrainingDataset():
         return len(self.imagesTr)
 
 
-class BraTS_TestDataset():
-    def __init__(self, path, device='cpu'):
-        self.path = path # this should be the root dir for extracted files
-        self.imgTs_dir = os.path.join(path, 'imagesTs')
-        
-        print(self.imgTs_dir)
-        
-        self.imagesTs = []
-        self.imagesTs_paths = []
-        
-        for img in os.listdir(self.imgTs_dir):
-            self.imagesTs.append(img)
-            
-    def __getitem__(self, idx):
-        """
-        Loads and returns a single sample in the form of a dictionary
-        with keys 'image' and 'label'.
-        The function returns the sample at the given index (idx)
-        by finding the path and returning the numpy array.
-        """
-        # load test image
-        img_filename = self.imagesTs[idx]
-        img_path = os.path.join(self.imgTs_dir, img_filename)
-        img = np.load(img_path)
-        return img
+# TODO:
+# BraTS_TestDataset class (e.g. 80:20 train-test split)
+
+
+def split_cube(batch):
+    """
+    Takes a batch of 3d cubes (with different modalities) as input and
+    splits each cube into 8 patches (each cube dimension is halved).
+    If the batchsize is > 1 then each minicube_batch contains the minicubes
+    from that position of each big cube in the input batch.
+    Returns a batch of 3d Minicubes.
+    """
+    minicube_batch = dict()
     
-    def __len__(self):
-        """
-        Returns the number of test-files.
-        """
-        return len(self.imagesTs)
+    # split images
+    minicube_batch0 = batch['image'][:, :, :78, :96,  :96]
+    minicube_batch1 = batch['image'][:, :, :78, :96,   96:]
+    minicube_batch2 = batch['image'][:, :, :78,  96:, :96]
+    minicube_batch3 = batch['image'][:, :, :78,  96:,  96:]
+    
+    minicube_batch4 = batch['image'][:, :, 78:, :96,  :96]
+    minicube_batch5 = batch['image'][:, :, 78:, :96,   96:]
+    minicube_batch6 = batch['image'][:, :, 78:,  96:, :96]
+    minicube_batch7 = batch['image'][:, :, 78:,  96:,  96:]
+    
+    # assemble minicubes into batch
+    minicube_batch['image'] = torch.cat(
+        (minicube_batch0, minicube_batch1, minicube_batch2, minicube_batch3, 
+         minicube_batch4, minicube_batch5, minicube_batch6, minicube_batch7), 0)
+    
+    # split labels
+    label_batch0 = batch['label'][:, :78, :96,  :96]
+    label_batch1 = batch['label'][:, :78, :96,   96:]
+    label_batch2 = batch['label'][:, :78,  96:, :96]
+    label_batch3 = batch['label'][:, :78,  96:,  96:]
+    
+    label_batch4 = batch['label'][:, 78:, :96,  :96]
+    label_batch5 = batch['label'][:, 78:, :96,   96:]
+    label_batch6 = batch['label'][:, 78:,  96:, :96]
+    label_batch7 = batch['label'][:, 78:,  96:,  96:]
+    
+    # assemble labels into batch
+    minicube_batch['label'] = torch.cat(
+        (label_batch0, label_batch1, label_batch2, label_batch3, 
+         label_batch4, label_batch5, label_batch6, label_batch7), 0)
+    
+    # print info
+    # print('shape of minicube-images batch:', minicube_batch['image'].shape)
+    # print('shape of minicube-labels batch:', minicube_batch['label'].shape)
+    
+    return minicube_batch
 
 
 def plot_batch(batch, num_rows=2, height=70):
