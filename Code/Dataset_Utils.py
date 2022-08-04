@@ -161,21 +161,21 @@ def plot_batch(batch, num_rows=2, height=70):
     
 def crop_batch(img_batch):
     """
-    Crops a batch of images to output size (191, 161) per slice.
+    Crops a batch of images to output size (192, 192) per slice.
     """
     n_dims = img_batch.dim()
     
     # Crop 2D slice
     if n_dims == 2:
-        cropped_result = img_batch[19:210, 38:199]
+        cropped_result = img_batch[19:211, 19:211]
     
     # Crop slices in 3D Volume
     elif n_dims == 3:
-        cropped_result = img_batch[:, 19:210, 38:199]
+        cropped_result = img_batch[:, 19:211, 19:211]
         
     # Crop slices in batch of 3D Volumes
     elif n_dims == 4:
-        cropped_result = img_batch[:, :, 19:210, 38:199]
+        cropped_result = img_batch[:, :, 19:211, 19:211]
         
     else:
         raise IndexError
@@ -188,5 +188,5 @@ def decrop_batch(img_batch):
     but also works on just a single image.
     Output size per slice is (240, 240).
     """
-    decropped_batch = F.pad(img_batch, (38,41,19,30), 'constant', 0)
+    decropped_batch = F.pad(img_batch, (19,29,19,29), 'constant', 0)
     return decropped_batch
