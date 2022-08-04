@@ -90,6 +90,14 @@ def split_cube(batch):
     """
     minicube_batch = dict()
     
+    # padding:
+    # add empty slice to make number of slices divisible by 2
+    # -> new number of slices is 156
+    image_padding = (0,0, 0,0, 1,0, 0,0, 0,0)
+    label_padding = (0,0, 0,0, 1,0, 0,0)
+    batch['image'] = F.pad(batch['image'], image_padding, 'constant', 0)
+    batch['label'] = F.pad(batch['label'], label_padding, 'constant', 0)
+    
     # split images
     minicube_batch0 = batch['image'][:, :, :78, :96,  :96]
     minicube_batch1 = batch['image'][:, :, :78, :96,   96:]
@@ -121,10 +129,6 @@ def split_cube(batch):
     minicube_batch['label'] = torch.cat(
         (label_batch0, label_batch1, label_batch2, label_batch3, 
          label_batch4, label_batch5, label_batch6, label_batch7), 0)
-    
-    # print info
-    # print('shape of minicube-images batch:', minicube_batch['image'].shape)
-    # print('shape of minicube-labels batch:', minicube_batch['label'].shape)
     
     return minicube_batch
 
