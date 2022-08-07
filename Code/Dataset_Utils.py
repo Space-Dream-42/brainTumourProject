@@ -155,6 +155,47 @@ def plot_batch(batch, num_rows=2, height=70):
                 ax.imshow(y[height, :, :], cmap="gray", origin="lower")
     plt.show()
     plt.close()
+
+    
+def plot_pred_label_comparison(minicube_batch, minicube_idx, height=70):
+    """
+    Takes a batch of minicubes as input and outputs a comparison plot between a slice of the
+    prediction and the label at the given height of the minicube at the given index in the batch.
+    """
+    
+    # make prediction
+    voxel_logits_batch = model.forward(minicube_batch['image'][None, minicube_idx,:,:,:,:])
+    
+    sm = nn.Softmax(dim=1)
+    voxel_probs_batch = sm(voxel_logits_batch)
+    probs, out = torch.max(voxel_probs_batch, dim=1)
+    
+    pred_slice = out[0, height, :, :].cpu()
+    label_slice = minicube_batch['label'][minicube_idx, height, :, :].cpu()
+    
+    # color picker: https://www.tug.org/pracjourn/2007-4/walden/color.pdf
+    colors = [(0.3,0.4,0.7),(0.1, 0.9, 0.5),(0.9,0.7,0.2), (0.9,0.4,0.0)]
+    
+    plt.rcParams.update({'axes.labelsize': 30})
+    
+    cmap, norm = from_levels_and_colors([0,1,2,3,4], colors)
+    slice_labels = ['prediction', 'label']
+    fig, axes = plt.subplots(ncols=2)
+    fig.set_size_inches(18, 10)
+    
+    
+    for ax, data, slice_label in zip(axes, [pred_slice, label_slice], slice_labels):
+        im = ax.imshow(data, 
+                       cmap = cmap,
+                       norm = norm, 
+                       interpolation ='none')
+        ax.set(xlabel=slice_label)
+        ax.tick_params(labelsize=18)
+    
+    cbar = fig.colorbar(im, ticks=[0, 1, 2, 3], orientation='vertical')
+    cbar.ax.set_yticklabels([Labels[i] for i in range(4)], fontsize=18)
+    
+    plt.show()
     
     
 def crop_batch(img_batch):
