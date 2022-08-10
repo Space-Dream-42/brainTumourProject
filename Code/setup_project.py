@@ -3,9 +3,10 @@ import json
 import os
 import glob
 import SimpleITK as sitk
+import shutil
 
 current_dir = os.getcwd()
-parent_dir = os.path.abspath(os.path.join(root_dir, os.pardir)) 
+parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir)) 
 dataset_dir = os.path.join(parent_dir, 'Task01_BrainTumour')
 
 # data folder
@@ -26,11 +27,13 @@ def delete_folder(folder_path):
     for f in file_paths:
         os.remove(f)
     
-    os.rmdir(folder_path)
+    shutil.rmtree(folder_path)
 
 def delete_imagesTs():
     delete_folder(os.path.join(dataset_dir, "imagesTs"))
-    
+
+def folder_structure_exits():
+    return os.path.exists(os.path.join(parent_dir, 'Data'))
     
 def create_folder_structure():
     data_path = os.path.join(parent_dir, 'Data')
@@ -73,17 +76,19 @@ def get_file_names():
 
 def main():
     try:
-        print("Deleting the folder 'imagesTs'", end="\r")
-        delete_imagesTs()
-        print("Deleting the folder 'imagesTs is done!'")
+        if os.path.exists(os.path.join(dataset_dir, "imagesTs")):
+            print("Deleting the folder 'imagesTs'", end="\r")
+            delete_imagesTs()
+            print("Deleting the folder 'imagesTs is done!'")
     except:
-        print("Failed to delete the folder 'imagesTS'.")
+        print("Failed to delete the folder 'imagesTs'.")
         exit(1)
 
     try:
-        print("Creating folder structure", end="\r")
-        create_folder_structure()
-        print("Creating the folder structure is done!")
+        if not(folder_structure_exits()):
+            print("Creating folder structure", end="\r")
+            create_folder_structure()
+            print("Creating the folder structure is done!")
     except:
         print("Failed to create folder structure.")
         exit(1)
