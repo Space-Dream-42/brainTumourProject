@@ -3,7 +3,7 @@ import torch.nn as nn
 from custom_losses import get_loss
 from dataset_utils import split_cube, slice_cube
 
-def train_model(model, optimizer, loss, epochs, device, has_minicubes, train_iter, steps_per_epoch = 400):
+def train_model(model, optimizer, loss_fn, epochs, device, has_minicubes, train_iter, steps_per_epoch = 400):
     if has_minicubes:
         save_rate = 200
     else:
@@ -21,7 +21,7 @@ def train_model(model, optimizer, loss, epochs, device, has_minicubes, train_ite
             else:
                 if step % 160 == 0: #check if model is 2D
                     batch = slice_cube(train_iter.next())
-            loss = get_loss(model, loss, has_minicubes, step, device, batch)
+            loss = get_loss(model, loss_fn, has_minicubes, step, device, batch)
             losses.append(loss)
 
             if step % save_rate == 0:
