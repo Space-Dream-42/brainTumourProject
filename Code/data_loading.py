@@ -3,10 +3,14 @@ import numpy as np
 import os
 
 class BraTS_Dataset():
-    def __init__(self, path):
+    def __init__(self, path, dataset_type='training'):
         self.path = path  # this should be the root dir for extracted (or cropped) files
-        self.imgTr_dir = os.path.join(path, 'imagesTr')
-        self.labelsTr_dir = os.path.join(path, 'labelsTr')  # TODO: rename TR-related names
+        if dataset_type == 'training':
+            self.imgTr_dir = os.path.join(path, 'imagesTr')
+            self.labelsTr_dir = os.path.join(path, 'labelsTr')
+        elif dataset_type == 'test':
+            self.imgTr_dir = os.path.join(path, 'imagesTs')
+            self.labelsTr_dir = os.path.join(path, 'labelsTs')
 
         print(self.imgTr_dir)
         print(self.labelsTr_dir)
@@ -56,13 +60,13 @@ class BraTS_Dataset():
         return len(self.imagesTr)
 
 
-def get_train_test_iters(training_path, test_path, batch_size=1, shuffle=True, num_workers=0):
-    train_data = BraTS_Dataset(training_path)
-    test_data = BraTS_Dataset(test_path)
+def get_train_test_iters(path, batch_size=1, shuffle=True, num_workers=0):
+    train_data = BraTS_Dataset(path, dataset_type='training')
+    test_data = BraTS_Dataset(path, dataset_type='test')
     trainloader = torch.utils.data.DataLoader(
         train_data, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
     testloader = torch.utils.data.DataLoader(
-        train_data, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+        test_data, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
     train_iter = iter(trainloader)
     test_iter = iter(testloader)
     return train_iter, test_iter

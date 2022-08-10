@@ -58,15 +58,15 @@ def split_cube(batch):
          minicube_batch4, minicube_batch5, minicube_batch6, minicube_batch7), 0)
     
     # split labels
-    label_batch0 = batch['label'][:, :80, :96,  :96]
-    label_batch1 = batch['label'][:, :80, :96,   96:]
-    label_batch2 = batch['label'][:, :80,  96:, :96]
-    label_batch3 = batch['label'][:, :80,  96:,  96:]
+    label_batch0 = batch['label'][:, :, :80, :96,  :96]
+    label_batch1 = batch['label'][:, :, :80, :96,   96:]
+    label_batch2 = batch['label'][:, :, :80,  96:, :96]
+    label_batch3 = batch['label'][:, :, :80,  96:,  96:]
     
-    label_batch4 = batch['label'][:, 80:, :96,  :96]
-    label_batch5 = batch['label'][:, 80:, :96,   96:]
-    label_batch6 = batch['label'][:, 80:,  96:, :96]
-    label_batch7 = batch['label'][:, 80:,  96:,  96:]
+    label_batch4 = batch['label'][:, :, 80:, :96,  :96]
+    label_batch5 = batch['label'][:, :, 80:, :96,   96:]
+    label_batch6 = batch['label'][:, :, 80:,  96:, :96]
+    label_batch7 = batch['label'][:, :, 80:,  96:,  96:]
     
     # assemble labels into batch
     minicube_batch['label'] = torch.cat(
@@ -74,6 +74,18 @@ def split_cube(batch):
          label_batch4, label_batch5, label_batch6, label_batch7), 0)
     
     return minicube_batch
+
+def slice_cube(batch):
+    twod_images_batch = dict()
+
+    # add zero-padding slices
+    image_padding = (0,0, 0,0, 3,2, 0,0, 0,0)
+    label_padding = (0,0, 0,0, 3,2, 0,0)
+    batch['image'] = F.pad(batch['image'], image_padding, 'constant', 0)
+    batch['label'] = F.pad(batch['label'], label_padding, 'constant', 0)
+    twod_images_batch['image'] = batch['image'].permute(2, 0, 1, 3, 4)
+    twod_images_batch['label'] = batch['label'].permute(2, 0, 1, 3, 4)
+    return twod_images_batch
 
 
 def plot_batch(batch, num_rows=2, height=70):
