@@ -1,118 +1,150 @@
 import numpy as np
 import json
 import os
-
-# TODO: PLEASE TEST!!!
-
+import glob
 import SimpleITK as sitk
 
-# prepare extracting files:
-# make new dirs etc
-
-root_dir = os.getcwd()
-parent_dir = os.path.abspath(os.path.join(root_dir, os.pardir))
+current_dir = os.getcwd()
+parent_dir = os.path.abspath(os.path.join(root_dir, os.pardir)) 
 dataset_dir = os.path.join(parent_dir, 'Task01_BrainTumour')
-print(f'root_dir:    {root_dir}')
-print(f'parent_dir:  {parent_dir}')
-print(f'dataset_dir: {dataset_dir}')
 
-# imagesTr: training images
-# labelsTr: training labels
-# imagesTs: test images
+# data folder
+data_dir = os.path.join(parent_dir, "data")
 
-extracted_dir = os.path.join(dataset_dir, 'extracted')
-imgTr_dir = os.path.join(extracted_dir, 'imagesTr')
-labelsTr_dir = os.path.join(extracted_dir, 'labelsTr')
-imgTs_dir = os.path.join(extracted_dir, 'imagesTs')
+train_dir = os.path.join(data_dir, "train")
+train_images_dir = os.path.join(train_dir, "images")
+train_labels_dir = os.path.join(train_dir, "labels")
 
-if not os.path.exists(dataset_dir + '/extracted'):
-    extracted = False
-    print('data not extracted yet.\n -> creating new extracted dir.')
-    for dir_path in [extracted_dir, imgTr_dir, labelsTr_dir, imgTs_dir]:
-        os.mkdir(dir_path)
-else:
-    extracted = True
+test_dir = os.path.join(data_dir, "test")
+test_images_dir = os.path.join(test_dir, "images")
+test_labels_dir = os.path.join(test_dir, "labels")
 
-# load the json dataset-info-file as a dictionary
-with open(dataset_dir + '/dataset.json') as json_file:
-    data = json.load(json_file)
-    print(data.keys())
-    print('\nScans:', data['modality'])
-    print('\nLabels:', data['labels'])
-    print('\n#Training:', data['numTraining'])
-    print('#Test:', data['numTest'])
 
-    train_filenames = data['training']
-    test_filenames = data['test']
+def delete_folder(folder_path):
+    file_paths = glob.glob(os.path.join(folder_path, "*"))
 
-print('\nTraining-files paths:', train_filenames[0])
-print('Test-files path:', test_filenames[0])
+    for f in file_paths:
+        os.remove(f)
+    
+    os.rmdir(folder_path)
 
-# extract files
-# needs about 110-120 GB disk-storage
-# or modify the code (break after e.g. 10 iterations)
-# to only unpack a couple of samples
+def delete_imagesTs():
+    delete_folder(os.path.join(dataset_dir, "imagesTs"))
+    
+    
+def create_folder_structure():
+    data_path = os.path.join(parent_dir, 'Data')
+    train_path = os.path.join(data_path, "train")
+    test_path = os.path.join(data_path, "test")
+    train_images_path = os.path.join(train_path, "images")
+    train_labels_path = os.path.join(train_path, "labels")
+    test_images_path = os.path.join(test_path, "images")
+    test_labels_path = os.path.join(test_path, "labels")
+    os.mkdir(data_path)
+    os.mkdir(train_path)
+    os.mkdir(test_path)
+    os.mkdir(train_images_path)
+    os.mkdir(train_labels_path)
+    os.mkdir(test_images_path)
+    os.mkdir(test_labels_path)
 
-if extracted:
-    print('files are already extracted.')
+def get_numpy_arr_of_nii_file(path):
+    sitk_arr = sitk.ReadImage(path)
+    return sitk.GetArrayFromImage(sitk_arr)
+    
+def crop_arr(arr):
+    return arr[:, :, 19:211, 19:211]
 
-else:
-    num_of_train_files = len(train_filenames)
-    num_of_test_files = len(test_filenames)
+def delete_original_dataset():
+    json_file_path = os.path.join(dataset_dir, "dataset.json")
+    labels_path = os.path.join(dataset_dir, "labelsTr")
+    images_path = os.path.join(dataset_dir, "imagesTr")
+    
+    delete_folder(labels_path)
+    delete_folder(images_path)
+    os.remove(json_file_path)
 
-    for i, img_path_dict in enumerate(train_filenames):
-        print(f'extracting training_file {i}/{num_of_train_files}', end="\r")
+def get_file_names():
+    with open(dataset_dir + '/dataset.json') as json_file:
+        data = json.load(json_file)
+        train_filenames = data['training']
+    
+    return train_filenames
+
+def main():
+    try:
+        print("Deleting the folder 'imagesTs'", end="\r")
+        delete_imagesTs()
+        print("Deleting the folder 'imagesTs is done!'")
+    except:
+        print("Failed to delete the folder 'imagesTS'.")
+        exit(1)
+
+    try:
+        print("Creating folder structure", end="\r")
+        create_folder_structure()
+        print("Creating the folder structure is done!")
+    except:
+        print("Failed to create folder structure.")
+        exit(1)
+
+    try:
+        print("Extracting filenames of json-file.", end="\r")
+        file_names = get_file_names()
+        print("Extracting filenames of json-file is done!")
+    except:
+        print("Failed to extract filenames of json-file.")
+        exit(1)
+
+    # 80/20 train-test-split
+    num_of_files = len(file_names)
+    num_of_train_files = 387
+    num_of_test_files = 97
+
+    # train-files
+    for i, img_path_dict in enumerate(file_names):
         image_path_gz = img_path_dict['image'][2:]
         label_path_gz = img_path_dict['label'][2:]
 
-        # extract and save image
-        img_path = os.path.join(dataset_dir, image_path_gz)  # nii-image path
-        sitk_img = sitk.ReadImage(img_path)  # read the nii-image
-        img = sitk.GetArrayFromImage(sitk_img)  # img to numpy array
-        extracted_img_path = os.path.join(imgTr_dir, str(i))
-        np.save(extracted_img_path, img)
+        if i < num_of_test_files:
+            print(f'Extracting training_file {i+1}/{num_of_train_files}', end="\r")
 
-        # extract and save label
-        label_path = os.path.join(dataset_dir, label_path_gz)  # nii-image path
-        sitk_label_img = sitk.ReadImage(label_path)  # read the nii-image
-        img_label = sitk.GetArrayFromImage(sitk_label_img)  # img to numpy array
-        extracted_label_path = os.path.join(labelsTr_dir, str(i))
-        np.save(extracted_label_path, img_label)
-    print('finished extracting training files.')
+            # extract and save image
+            img_path = os.path.join(dataset_dir, image_path_gz)
+            img_arr = crop_arr(get_numpy_arr_of_nii_file(img_path))
+            train_imag_path = os.path.join(train_images_dir, str(i))
+            np.save(train_imag_path, img_arr)
 
-    for i, img_path in enumerate(test_filenames):
-        print(f'extracting testing_file {i}/{num_of_test_files}', end="\r")
-        image_path_gz = img_path[2:]
+            # extract and save labels
+            label_path = os.path.join(dataset_dir, label_path_gz)
+            label_arr = crop_arr(get_numpy_arr_of_nii_file(label_path))
+            train_label_path = os.path.join(train_labels_dir, str(i))
+            np.save(train_label_path, label_arr)
 
-        # extract and save test image
-        img_path = os.path.join(dataset_dir, image_path_gz)  # nii-image path
-        sitk_img = sitk.ReadImage(img_path)  # read the nii-image
-        img = sitk.GetArrayFromImage(sitk_img)  # img to numpy array
-        extracted_img_path = os.path.join(imgTs_dir, str(i))
-        np.save(extracted_img_path, img)
-    print('finished extracting test files.')
+        else:
+            # test-files
+            print(f'Extracting test_file {i-385}/{num_of_train_files}', end="\r")
+            # extract and save image
+            img_path = os.path.join(dataset_dir, image_path_gz)
+            img_arr = crop_arr(get_numpy_arr_of_nii_file(img_path))
+            train_imag_path = os.path.join(test_images_dir, str(i))
+            np.save(train_imag_path, img_arr)
 
-extracted_directory = '../Task01_BrainTumour/extracted/'
-cropped_directory = '../Task01_BrainTumour/cropped/'
-image_directory = 'imagesTr/%i.npy'
-label_directory = 'labelsTr/%i.npy'
+            # extract and save labels
+            label_path = os.path.join(dataset_dir, label_path_gz)
+            label_arr = crop_arr(get_numpy_arr_of_nii_file(label_path))
+            train_label_path = os.path.join(test_labels_dir, str(i))
+            np.save(train_label_path, label_arr)
 
 
-def get_image_and_target(i):
-    return np.load(imgTr_dir + '%i.npy' % i), np.load(labelsTr_dir + '%i.npy' % i)
+    try:
+        print("Deleting the original dataset.", end="\r")
+        delete_original_dataset()
+        print("Deleting the original dataset is done!")
+    except:
+        print("Failed to delete the original dataset.")
+        exit(1)
 
 
-if not os.path.exists('../Task01_BrainTumour/cropped/'):
-    print('data not extracted yet.\n -> creating new extracted dir.')
-    os.mkdir('../Task01_BrainTumour/cropped/')
-    os.mkdir('../Task01_BrainTumour/cropped/imagesTr/')
-    os.mkdir('../Task01_BrainTumour/cropped/labelsTr/')
-
-
-for i in range(484):
-    current_image, current_label = get_image_and_target(i)
-    np.save(cropped_directory + image_directory % i, current_image[:, :, 19:211, 19:211])
-    np.save(cropped_directory + label_directory % i, current_label[:, 19:211, 19:211])
-    print(f'cropping images: {i}/483', end="\r")
-
-# TODO: Test-Train-Split
+if __name__ == "__main__":
+    main()
