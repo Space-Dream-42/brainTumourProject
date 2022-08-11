@@ -55,8 +55,11 @@ def get_numpy_arr_of_nii_file(path):
     sitk_arr = sitk.ReadImage(path)
     return sitk.GetArrayFromImage(sitk_arr)
     
-def crop_arr(arr):
+def crop_image_arr(arr):
     return arr[:, :, 19:211, 19:211]
+
+def crop_label_arr(arr):
+    return arr[:,19:211, 19:211]
 
 def delete_original_dataset():
     json_file_path = os.path.join(dataset_dir, "dataset.json")
@@ -116,13 +119,13 @@ def main():
 
             # extract and save image
             img_path = os.path.join(dataset_dir, image_path_gz)
-            img_arr = crop_arr(get_numpy_arr_of_nii_file(img_path))
+            img_arr = crop_image_arr(get_numpy_arr_of_nii_file(img_path))
             train_imag_path = os.path.join(train_images_dir, str(i))
             np.save(train_imag_path, img_arr)
 
             # extract and save labels
             label_path = os.path.join(dataset_dir, label_path_gz)
-            label_arr = crop_arr(get_numpy_arr_of_nii_file(label_path))
+            label_arr = crop_label_arr(get_numpy_arr_of_nii_file(label_path))
             train_label_path = os.path.join(train_labels_dir, str(i))
             np.save(train_label_path, label_arr)
 
@@ -131,13 +134,13 @@ def main():
             print(f'Extracting test_file {i-385}/{num_of_train_files}', end="\r")
             # extract and save image
             img_path = os.path.join(dataset_dir, image_path_gz)
-            img_arr = crop_arr(get_numpy_arr_of_nii_file(img_path))
+            img_arr = crop_image_arr(get_numpy_arr_of_nii_file(img_path))
             train_imag_path = os.path.join(test_images_dir, str(i))
             np.save(train_imag_path, img_arr)
 
             # extract and save labels
             label_path = os.path.join(dataset_dir, label_path_gz)
-            label_arr = crop_arr(get_numpy_arr_of_nii_file(label_path))
+            label_arr = crop_label_arr(get_numpy_arr_of_nii_file(label_path))
             train_label_path = os.path.join(test_labels_dir, str(i))
             np.save(train_label_path, label_arr)
 
