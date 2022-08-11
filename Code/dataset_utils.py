@@ -90,8 +90,8 @@ def slice_cube(batch):
 
 def plot_batch(batch, num_rows=2, height=70):
     
-    plt.clf()
-    fig, ax_array = plt.subplots(num_rows, 5, figsize=(12,6), 
+    # plt.clf()
+    fig, ax_array = plt.subplots(num_rows, 4, figsize=(12,6), 
                                  gridspec_kw = {'wspace':0, 'hspace':0})
     
     for i, ax in enumerate(fig.axes):
@@ -100,45 +100,40 @@ def plot_batch(batch, num_rows=2, height=70):
 
         for row in range(num_rows):
             x = batch['image'][row]
-            y = batch['label'][row]
             
             # modalities
-            indices = [col_idx + (5*row) for col_idx in range(4)]
+            indices = [col_idx + (4*row) for col_idx in range(4)]
             if i in indices:
-                ax.imshow(x[i%5, height, :, :], cmap="gray", origin="lower")
+                ax.imshow(x[i%4, height, :, :], cmap="gray", origin="lower")
                 
-            # label
-            if i == (5*row + 4):
-                ax.imshow(y[height, :, :], cmap="gray", origin="lower")
     plt.show()
     plt.close()
 
     
-def plot_pred_label_comparison(model, minicube_batch, minicube_idx, height=70):
+def plot_pred_label_comparison(model, minicube_batch, device, minicube_idx, height=70):
     """
     Takes a batch of minicubes as input and outputs a comparison plot between a slice of the
     prediction and the label at the given height of the minicube at the given index in the batch.
     """
     
     # make prediction
-    voxel_logits_batch = model.forward(minicube_batch['image'][None, minicube_idx,:,:,:,:])
+    voxel_logits_batch = model.forward(minicube_batch['image'][None, minicube_idx,:,:,:,:].to(device))
     
     sm = nn.Softmax(dim=1)
     voxel_probs_batch = sm(voxel_logits_batch)
     probs, out = torch.max(voxel_probs_batch, dim=1)
     
     pred_slice = out[0, height, :, :].cpu()
-    label_slice = minicube_batch['label'][minicube_idx, height, :, :].cpu()
+    label_slice = minicube_batch['label'][minicube_idx, 0, height, :, :].cpu()
     
-    # color picker: https://www.tug.org/pracjourn/2007-4/walden/color.pdf
     colors = [(0.3,0.4,0.7),(0.1, 0.9, 0.5),(0.9,0.7,0.2), (0.9,0.4,0.0)]
     
-    plt.rcParams.update({'axes.labelsize': 30})
+    plt.rcParams.update({'axes.labelsize': 14})
     
     cmap, norm = from_levels_and_colors([0,1,2,3,4], colors)
     slice_labels = ['prediction', 'label']
     fig, axes = plt.subplots(ncols=2)
-    fig.set_size_inches(18, 10)
+    fig.set_size_inches(10, 5)
     
     
     for ax, data, slice_label in zip(axes, [pred_slice, label_slice], slice_labels):
@@ -147,13 +142,24 @@ def plot_pred_label_comparison(model, minicube_batch, minicube_idx, height=70):
                        norm = norm, 
                        interpolation ='none')
         ax.set(xlabel=slice_label)
-        ax.tick_params(labelsize=18)
+        ax.tick_params(labelsize=12)
     
     cbar = fig.colorbar(im, ticks=[0, 1, 2, 3], orientation='vertical')
-    cbar.ax.set_yticklabels([Labels[i] for i in range(4)], fontsize=18)
-    
+    cbar.ax.set_yticklabels([Labels[i] for i in range(4)], fontsize=12)
     plt.show()
-    
+    plt.close()
+
+
+def plot_loss(train_losses, test_losses, loss_fn):
+    plt.plot(train_losses, label='training loss')
+    if test_losses is not None:
+        plt.plot(test_losses, label='test loss')
+    plt.xlabel('epoch', fontsize=14)
+    plt.ylabel('loss', fontsize=14)
+    plt.legend()
+    plt.show()
+    plt.close()
+
     
 def crop_batch(img_batch):
     """
@@ -186,4 +192,3 @@ def decrop_batch(img_batch):
     """
     decropped_batch = F.pad(img_batch, (19,29,19,29), 'constant', 0)
     return decropped_batch
-
