@@ -1,3 +1,4 @@
+from cProfile import label
 import numpy as np
 import json
 import os
@@ -10,15 +11,13 @@ parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
 dataset_dir = os.path.join(parent_dir, 'Task01_BrainTumour')
 
 # data folder
-data_dir = os.path.join(parent_dir, "data")
+data_dir = os.path.join(dataset_dir, "cropped")
 
-train_dir = os.path.join(data_dir, "train")
-train_images_dir = os.path.join(train_dir, "images")
-train_labels_dir = os.path.join(train_dir, "labels")
+train_images_dir = os.path.join(data_dir, "imagesTr")
+train_labels_dir = os.path.join(data_dir, "labelsTr")
 
-test_dir = os.path.join(data_dir, "test")
-test_images_dir = os.path.join(test_dir, "images")
-test_labels_dir = os.path.join(test_dir, "labels")
+test_images_dir = os.path.join(data_dir, "imagesTs")
+test_labels_dir = os.path.join(data_dir, "labelsTs")
 
 
 def delete_folder(folder_path):
@@ -36,20 +35,12 @@ def folder_structure_exits():
     return os.path.exists(os.path.join(parent_dir, 'Data'))
     
 def create_folder_structure():
-    data_path = os.path.join(parent_dir, 'Data')
-    train_path = os.path.join(data_path, "train")
-    test_path = os.path.join(data_path, "test")
-    train_images_path = os.path.join(train_path, "images")
-    train_labels_path = os.path.join(train_path, "labels")
-    test_images_path = os.path.join(test_path, "images")
-    test_labels_path = os.path.join(test_path, "labels")
-    os.mkdir(data_path)
-    os.mkdir(train_path)
-    os.mkdir(test_path)
-    os.mkdir(train_images_path)
-    os.mkdir(train_labels_path)
-    os.mkdir(test_images_path)
-    os.mkdir(test_labels_path)
+    os.mkdir(data_dir)
+    os.mkdir(train_images_dir)
+    os.mkdir(train_labels_dir)
+    os.mkdir(test_images_dir)
+    os.mkdir(test_labels_dir)
+
 
 def get_numpy_arr_of_nii_file(path):
     sitk_arr = sitk.ReadImage(path)
@@ -69,7 +60,6 @@ def delete_original_dataset():
     delete_folder(labels_path)
     delete_folder(images_path)
     os.remove(json_file_path)
-    delete_folder(dataset_dir)
 
 def get_file_names():
     with open(dataset_dir + '/dataset.json') as json_file:
@@ -78,81 +68,60 @@ def get_file_names():
     
     return train_filenames
 
+def extract_crop_and_save_image_and_label_file(image_path_relative, label_path_relative, file_name):
+    # extract and save image
+    img_path = os.path.join(dataset_dir, image_path_relative)
+    img_arr = crop_image_arr(get_numpy_arr_of_nii_file(img_path))
+    img_arr_path = os.path.join(train_images_dir, file_name)
+    np.save(img_arr_path, img_arr)
+
+    # extract and save labels
+    label_path = os.path.join(dataset_dir, label_path_relative)
+    label_arr = crop_label_arr(get_numpy_arr_of_nii_file(label_path))
+    label_arr_path = os.path.join(train_labels_dir, file_name)
+    np.save(label_arr_path, label_arr)
+
+
 def main():
-    try:
-        if os.path.exists(os.path.join(dataset_dir, "imagesTs")):
-            print("Deleting the folder 'imagesTs'", end="\r")
-            delete_imagesTs()
-            print("Deleting the folder 'imagesTs is done!'")
-    except:
-        print("Failed to delete the folder 'imagesTs'.")
-        exit(1)
 
-    try:
-        if not(folder_structure_exits()):
-            print("Creating folder structure", end="\r")
-            create_folder_structure()
-            print("Creating the folder structure is done!")
-    except:
-        print("Failed to create folder structure.")
-        exit(1)
+    if os.path.exists(os.path.join(dataset_dir, "imagesTs")):
+        print("Deleting the folder 'imagesTs'", end="\r")
+        delete_imagesTs()
+        print("Deleting the folder 'imagesTs is done!'")
 
-    try:
-        print("Extracting filenames of json-file.", end="\r")
-        file_names = get_file_names()
-        print("Extracting filenames of json-file is done!")
-    except:
-        print("Failed to extract filenames of json-file.")
-        exit(1)
+    if not(folder_structure_exits()):
+        print("Creating folder structure", end="\r")
+        create_folder_structure()
+        print("Creating the folder structure is done!")
+
+    print("Extracting filenames of json-file.", end="\r")
+    file_names = get_file_names()
+    print("Extracting filenames of json-file is done!")
+
 
     # 80/20 train-test-split
-    num_of_files = len(file_names)
-    num_of_train_files = 387
-    num_of_test_files = 97
+    num_of_train_files = 400
+    num_of_test_files = 84
 
-    # train-files
     for i, img_path_dict in enumerate(file_names):
         image_path_gz = img_path_dict['image'][2:]
         label_path_gz = img_path_dict['label'][2:]
 
         if i < num_of_train_files:
+            #train-files
             print(f'Extracting training_file {i+1}/{num_of_train_files}', end="\r")
-
-            # extract and save image
-            img_path = os.path.join(dataset_dir, image_path_gz)
-            img_arr = crop_image_arr(get_numpy_arr_of_nii_file(img_path))
-            train_imag_path = os.path.join(train_images_dir, str(i))
-            np.save(train_imag_path, img_arr)
-
-            # extract and save labels
-            label_path = os.path.join(dataset_dir, label_path_gz)
-            label_arr = crop_label_arr(get_numpy_arr_of_nii_file(label_path))
-            train_label_path = os.path.join(train_labels_dir, str(i))
-            np.save(train_label_path, label_arr)
+            extract_crop_and_save_image_and_label_file(image_path_gz,label_path_gz,str(i))
 
         else:
             # test-files
-            print(f'Extracting test_file {i-386}/{num_of_train_files}', end="\r")
-            # extract and save image
-            img_path = os.path.join(dataset_dir, image_path_gz)
-            img_arr = crop_image_arr(get_numpy_arr_of_nii_file(img_path))
-            train_imag_path = os.path.join(test_images_dir, str(i))
-            np.save(train_imag_path, img_arr)
-
-            # extract and save labels
-            label_path = os.path.join(dataset_dir, label_path_gz)
-            label_arr = crop_label_arr(get_numpy_arr_of_nii_file(label_path))
-            train_label_path = os.path.join(test_labels_dir, str(i))
-            np.save(train_label_path, label_arr)
+            print(f'Extracting test_file {i-num_of_train_files+1}/{num_of_test_files} \t \t', end="\r")
+            extract_crop_and_save_image_and_label_file(image_path_gz,label_path_gz,str(i-num_of_test_files))
 
 
-    try:
-        print("Deleting the original dataset.", end="\r")
-        delete_original_dataset()
-        print("Deleting the original dataset is done!")
-    except:
-        print("Failed to delete the original dataset.")
-        exit(1)
+    print("Deleting the original dataset.", end="\r")
+    delete_original_dataset()
+    print("Deleting the original dataset is done!")
+
 
 
 if __name__ == "__main__":
