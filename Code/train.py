@@ -73,9 +73,9 @@ def train_model(model, optimizer, loss_fn, epochs, device, train_3d, train_iter,
         
         # print train and test loss of epoch
         if compute_test_loss:
-            print(f'epoch {epoch}: step {step:3d}: epoch_train_loss={mean_train_loss:3.3f}, epoch_test_loss={mean_test_loss:3.3f}')
+            print(f'epoch {epoch}: epoch_train_loss={mean_train_loss:3.3f}, epoch_test_loss={mean_test_loss:3.3f}')
         else:
-            print(f'epoch {epoch}: step {step:3d}: epoch_train_loss={mean_train_loss:3.3f}')
+            print(f'epoch {epoch}: epoch_train_loss={mean_train_loss:3.3f}')
 
         # save the model
         path = f'../Weights/{model.__class__.__name__}_epoch{epoch}_step{step}_loss{mean_train_loss:3.3f}.h5'
