@@ -114,7 +114,7 @@ def main():
         image_path_gz = img_path_dict['image'][2:]
         label_path_gz = img_path_dict['label'][2:]
 
-        if i < num_of_test_files:
+        if i < num_of_train_files:
             print(f'Extracting training_file {i+1}/{num_of_train_files}', end="\r")
 
             # extract and save image
@@ -131,7 +131,7 @@ def main():
 
         else:
             # test-files
-            print(f'Extracting test_file {i-385}/{num_of_train_files}', end="\r")
+            print(f'Extracting test_file {i-386}/{num_of_train_files}', end="\r")
             # extract and save image
             img_path = os.path.join(dataset_dir, image_path_gz)
             img_arr = crop_image_arr(get_numpy_arr_of_nii_file(img_path))
