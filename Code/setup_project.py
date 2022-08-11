@@ -68,17 +68,23 @@ def get_file_names():
     
     return train_filenames
 
-def extract_crop_and_save_image_and_label_file(image_path_relative, label_path_relative, file_name):
+def extract_crop_and_save_image_and_label_file(image_path_relative, label_path_relative, file_name, train):
+    if train:
+        images_dir = train_images_dir
+        labels_dir = train_labels_dir
+    else:
+        images_dir = test_images_dir
+        labels_dir = test_labels_dir
     # extract and save image
     img_path = os.path.join(dataset_dir, image_path_relative)
     img_arr = crop_image_arr(get_numpy_arr_of_nii_file(img_path))
-    img_arr_path = os.path.join(train_images_dir, file_name)
+    img_arr_path = os.path.join(images_dir, file_name)
     np.save(img_arr_path, img_arr)
 
     # extract and save labels
     label_path = os.path.join(dataset_dir, label_path_relative)
     label_arr = crop_label_arr(get_numpy_arr_of_nii_file(label_path))
-    label_arr_path = os.path.join(train_labels_dir, file_name)
+    label_arr_path = os.path.join(labels_dir, file_name)
     np.save(label_arr_path, label_arr)
 
 
@@ -109,13 +115,19 @@ def main():
 
         if i < num_of_train_files:
             #train-files
-            print(f'Extracting training_file {i+1}/{num_of_train_files}', end="\r")
-            extract_crop_and_save_image_and_label_file(image_path_gz,label_path_gz,str(i))
+            if i == num_of_train_files-1:
+                print(f'Extracting training_file {i+1}/{num_of_train_files}')
+            else:
+                print(f'Extracting training_file {i+1}/{num_of_train_files}', end="\r")
+            extract_crop_and_save_image_and_label_file(image_path_gz,label_path_gz,str(i),True)
 
         else:
             # test-files
-            print(f'Extracting test_file {i-num_of_train_files+1}/{num_of_test_files} \t \t', end="\r")
-            extract_crop_and_save_image_and_label_file(image_path_gz,label_path_gz,str(i-num_of_test_files))
+            if i == num_of_test_files-1:
+                print(f'Extracting test_file {i-num_of_train_files+1}/{num_of_test_files}')
+            else:
+                print(f'Extracting test_file {i-num_of_train_files+1}/{num_of_test_files}', end="\r")
+            extract_crop_and_save_image_and_label_file(image_path_gz,label_path_gz,str(i-num_of_test_files),False)
 
 
     print("Extracting training and test files is done!")
