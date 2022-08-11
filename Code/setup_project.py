@@ -118,6 +118,8 @@ def main():
             extract_crop_and_save_image_and_label_file(image_path_gz,label_path_gz,str(i-num_of_test_files))
 
 
+    print("Extracting training and test files is done!")
+
     print("Deleting the original dataset.", end="\r")
     delete_original_dataset()
     print("Deleting the original dataset is done!")
