@@ -1,4 +1,4 @@
-# brainTumourProject
+# Brain Tumour Segmentation (BraTS)
 
 ## How to set up the project:
 1. Download "Task01_BrainTumour.tar" under the website http://medicaldecathlon.com and extract the tar file.
@@ -13,7 +13,7 @@ BT_Segmentation_Project
        |_ imagesTr                  (here are the compressed nii-files)
        |_ labelsTr
        |_ imagesTs
-
+    |_ Weights                      (trained model weights)
 ```
 3. Swtich to "Code" as a working directory
 4. Run "python3 set_up_project.py" in your shell, to extract the nii-files to numpy file (Attention!: have in mind that you need at least 300GB of storage)
