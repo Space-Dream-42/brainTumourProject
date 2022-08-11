@@ -25,7 +25,7 @@ Labels = {
     2: 'non-enhancing tumor',
     3: 'enhancing tumour'}
 
-def split_cube(batch):
+def split_cube(input_batch):
     """
     Takes a batch of 3d cubes (with different modalities) as input and
     splits each cube into 8 patches (each cube dimension is halved).
@@ -34,6 +34,11 @@ def split_cube(batch):
     Returns a batch of 3d Minicubes.
     """
     minicube_batch = dict()
+
+    # copy tensor so that the function has no side effects
+    batch = dict()
+    batch['image'] = input_batch['image'].clone()
+    batch['label'] = input_batch['label'].clone()
     
     # add zero-padding slices
     image_padding = (0,0, 0,0, 3,2, 0,0, 0,0)
@@ -88,6 +93,41 @@ def slice_cube(batch):
     return twod_images_batch
 
 
+def concat_minicubes(segmented_minicubes):
+    
+    # concatenate along width-axis 
+    lower_part_0 = torch.cat((segmented_minicubes[0], segmented_minicubes[1]), dim=2)
+    lower_part_1 = torch.cat((segmented_minicubes[2], segmented_minicubes[3]), dim=2)
+    upper_part_0 = torch.cat((segmented_minicubes[4], segmented_minicubes[5]), dim=2)
+    upper_part_1 = torch.cat((segmented_minicubes[6], segmented_minicubes[7]), dim=2)
+    
+    # concatenate along 
+    whole_lower_part = torch.cat((lower_part_0, lower_part_1), dim=1)
+    whole_upper_part = torch.cat((upper_part_0, upper_part_1), dim=1)
+    
+    # concatenate along height-axis
+    segmented_cube = torch.cat((whole_lower_part, whole_upper_part), dim=0)
+    return segmented_cube
+
+
+def segment_entire_3d_cube(model, batch, device):
+    minicube_batch = split_cube(batch) # split cubes into minicubes
+    sm = nn.Softmax(dim=1)
+    
+    for minicube_idx in range(8):
+        x = minicube_batch['image'][None,minicube_idx,:,:,:,:].to(device)
+        voxel_logits = model.forward(x).cpu()
+        voxel_probs = sm(voxel_logits)
+        probs, out = torch.max(voxel_probs, dim=1)
+        if minicube_idx == 0:
+            segmented_minicubes = out
+        else:
+            segmented_minicubes = torch.cat((segmented_minicubes, out), dim=0)
+    
+    segmented_cube = concat_minicubes(segmented_minicubes)
+    return segmented_cube
+
+
 def plot_batch(batch, num_rows=2, height=70):
     
     # plt.clf()
@@ -109,23 +149,8 @@ def plot_batch(batch, num_rows=2, height=70):
     plt.show()
     plt.close()
 
-    
-def plot_pred_label_comparison(model, minicube_batch, device, minicube_idx, height=70):
-    """
-    Takes a batch of minicubes as input and outputs a comparison plot between a slice of the
-    prediction and the label at the given height of the minicube at the given index in the batch.
-    """
-    
-    # make prediction
-    voxel_logits_batch = model.forward(minicube_batch['image'][None, minicube_idx,:,:,:,:].to(device))
-    
-    sm = nn.Softmax(dim=1)
-    voxel_probs_batch = sm(voxel_logits_batch)
-    probs, out = torch.max(voxel_probs_batch, dim=1)
-    
-    pred_slice = out[0, height, :, :].cpu()
-    label_slice = minicube_batch['label'][minicube_idx, 0, height, :, :].cpu()
-    
+
+def _plot_slice(pred_slice, label_slice, height=70):
     colors = [(0.3,0.4,0.7),(0.1, 0.9, 0.5),(0.9,0.7,0.2), (0.9,0.4,0.0)]
     
     plt.rcParams.update({'axes.labelsize': 14})
@@ -148,6 +173,40 @@ def plot_pred_label_comparison(model, minicube_batch, device, minicube_idx, heig
     cbar.ax.set_yticklabels([Labels[i] for i in range(4)], fontsize=12)
     plt.show()
     plt.close()
+
+
+def plot_minicube_pred_label(model, minicube_batch, device, minicube_idx, height=70):
+    """
+    Takes a batch of minicubes as input and outputs a comparison plot between a slice 
+    of the prediction on a minicube and the label of the minicube
+    at the given height of the minicube at the given index in the batch.
+    """
+    
+    # make prediction for minicube
+    voxel_logits_batch = model.forward(minicube_batch['image'][None, minicube_idx,:,:,:,:].to(device))
+    
+    sm = nn.Softmax(dim=1)
+    voxel_probs_batch = sm(voxel_logits_batch)
+    probs, out = torch.max(voxel_probs_batch, dim=1)
+    
+    pred_slice = out[0, height, :, :].cpu()
+    label_slice = minicube_batch['label'][minicube_idx, 0, height, :, :].cpu()
+    
+    _plot_slice(pred_slice, label_slice, height)
+
+
+def plot_cube_pred_label(model, batch, device, minicube_idx, height=70):
+    """
+    Takes a raw 3d batch as input and outputs a comparison plot between 
+    a slice of the prediction and the label at the given height.
+    """
+    # make prediction on entire cube
+    segmented_cube = segment_entire_3d_cube(model, batch, device)
+    
+    pred_slice = segmented_cube[height, :, :].cpu()
+    label_slice = batch['label'][0, 0, height, :, :].cpu()
+    
+    _plot_slice(pred_slice, label_slice, height)
 
 
 def plot_loss(train_losses, test_losses, loss_fn):
