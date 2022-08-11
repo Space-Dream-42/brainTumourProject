@@ -69,6 +69,7 @@ def delete_original_dataset():
     delete_folder(labels_path)
     delete_folder(images_path)
     os.remove(json_file_path)
+    delete_folder(dataset_dir)
 
 def get_file_names():
     with open(dataset_dir + '/dataset.json') as json_file:
