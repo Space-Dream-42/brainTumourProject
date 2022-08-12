@@ -62,7 +62,7 @@ def delete_original_dataset():
     os.remove(json_file_path)
 
 def get_file_names():
-    with open(dataset_dir + '/dataset.json') as json_file:
+    with open(os.path.join(dataset_dir,'dataset.json')) as json_file:
         data = json.load(json_file)
         train_filenames = data['training']
     
@@ -93,7 +93,7 @@ def main():
     if os.path.exists(os.path.join(dataset_dir, "imagesTs")):
         print("Deleting the folder 'imagesTs'", end="\r")
         delete_imagesTs()
-        print("Deleting the folder 'imagesTs is done!'")
+        print("Deleting the folder 'imagesTs' is done!")
 
     if not(folder_structure_exits()):
         print("Creating folder structure", end="\r")
@@ -123,11 +123,11 @@ def main():
 
         else:
             # test-files
-            if i == num_of_test_files-1:
+            if i == num_of_test_files+num_of_train_files-1:
                 print(f'Extracting test_file {i-num_of_train_files+1}/{num_of_test_files}')
             else:
                 print(f'Extracting test_file {i-num_of_train_files+1}/{num_of_test_files}', end="\r")
-            extract_crop_and_save_image_and_label_file(image_path_gz,label_path_gz,str(i-num_of_test_files),False)
+            extract_crop_and_save_image_and_label_file(image_path_gz,label_path_gz,str(i-num_of_train_files),False)
 
 
     print("Extracting training and test files is done!")
