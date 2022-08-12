@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 from custom_losses import get_loss
-from dataset_utils import split_cube, slice_cube
+from dataset_utils import split_cube, slice_cube, split_cube_with_context
 
 def train_model(model, optimizer, loss_fn, epochs, device, train_3d, train_iter, test_iter, compute_test_loss, batches_per_epoch=400):
     """
@@ -31,7 +31,7 @@ def train_model(model, optimizer, loss_fn, epochs, device, train_3d, train_iter,
             # 3D model
             if train_3d:
                 if step % 4 == 0:
-                    batch = split_cube(train_iter.next()) # Get a new batch of 3D minicubes
+                    batch = split_cube_with_context(train_iter.next()) # Get a new batch of 3D minicubes
             
             # 2D model
             else:
