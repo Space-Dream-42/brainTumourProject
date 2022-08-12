@@ -16,12 +16,10 @@ class UNet3D(nn.Module):
             nn.Conv3d(in_channels=in_channels, out_channels=out_channels,
                       kernel_size=kernel_size, stride=stride, padding=padding),
             nn.ReLU(),
-            nn.BatchNorm3d(out_channels),
 
             nn.Conv3d(in_channels=out_channels, out_channels=out_channels,
                       kernel_size=kernel_size, stride=stride, padding=padding),
-            nn.ReLU(),
-            nn.BatchNorm3d(out_channels),
+            nn.ReLU()
         )
         return downward_block
 
@@ -35,22 +33,20 @@ class UNet3D(nn.Module):
         in resolution for each upward block.
         """
         mid_channels = in_channels // 2
-        # E.g.: in_c = 512, mid_c = 256, out_c = 128
 
         upward_block = nn.Sequential(
             nn.Conv3d(in_channels=in_channels, out_channels=mid_channels,
                       kernel_size=kernel_size, stride=stride, padding=padding),
             nn.ReLU(),
-            nn.BatchNorm3d(mid_channels),
 
             nn.Conv3d(in_channels=mid_channels, out_channels=out_channels,
                       kernel_size=kernel_size, stride=stride, padding=padding),
-            nn.ReLU(),
-            nn.BatchNorm3d(out_channels))
+            nn.ReLU()
+        )
 
         return upward_block
 
-    def __init__(self, num_modalities, num_classes, img_height, img_width):
+    def __init__(self, num_modalities, num_classes):
 
         self.DEBUG = False
 
@@ -70,8 +66,7 @@ class UNet3D(nn.Module):
         self.same_conv = nn.Sequential(
             nn.Conv3d(in_channels=16, out_channels=16,
                       kernel_size=3, stride=1, padding=1),
-            nn.ReLU(),
-            nn.BatchNorm3d(16),
+            nn.ReLU()
         )
 
         self.upconv1 = nn.ConvTranspose3d(in_channels=16, out_channels=16,
@@ -86,20 +81,19 @@ class UNet3D(nn.Module):
         self.up2 = self.upward_block(in_channels=16, out_channels=8,
                                      kernel_size=3, stride=1, padding=0)
 
-        self.upconv3 = nn.ConvTranspose3d(in_channels=8, out_channels=4,
+        self.upconv3 = nn.ConvTranspose3d(in_channels=8, out_channels=num_classes,
                                           kernel_size=9, stride=2, padding=0, output_padding=1)
 
-        self.up3 = self.upward_block(in_channels=12, out_channels=4,
+        self.up3 = self.upward_block(in_channels=12, out_channels=num_classes,
                                      kernel_size=3, stride=1, padding=1)
 
         self.out_conv = nn.Sequential(
-            nn.Conv3d(in_channels=4, out_channels=4,
+            nn.Conv3d(in_channels=num_classes, out_channels=num_classes,
                       kernel_size=3, stride=1, padding=1),
             nn.ReLU(),
         )
 
     def forward(self, x):
-        #x = torch.FloatTensor(x).to(device)
 
         # downward layers
         x = self.down1(x)
