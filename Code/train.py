@@ -4,7 +4,7 @@ import numpy as np
 from custom_losses import get_loss
 from dataset_utils import split_cube, slice_cube
 
-def train_model(model, optimizer, loss_fn, epochs, device, train_3d, train_iter, test_iter, compute_test_loss, batches_per_epoch=400):
+def train_model(model, optimizer, loss_fn, epochs, device, train_3d, add_context, train_iter, test_iter, compute_test_loss, batches_per_epoch=400):
     """
     Trains the given 2D or 3D model and saves the trained weights once per epoch.
     Returns the train and test losses.
@@ -27,11 +27,11 @@ def train_model(model, optimizer, loss_fn, epochs, device, train_3d, train_iter,
     for epoch in range(epochs):
         epoch_train_losses = []
 
-        for step in range(steps_per_epoch):  
+        for step in range(steps_per_epoch):
             # 3D model
             if train_3d:
                 if step % 4 == 0:
-                    batch = split_cube(train_iter.next(), add_context=True) # Get a new batch of 3D minicubes
+                    batch = split_cube(train_iter.next(), add_context) # Get a new batch of 3D minicubes
             
             # 2D model
             else:
@@ -58,7 +58,7 @@ def train_model(model, optimizer, loss_fn, epochs, device, train_3d, train_iter,
                 # 3D model
                 if train_3d:
                     if step % 4 == 0:
-                        batch = split_cube(test_iter.next()) # Get a new batch of 3D minicubes
+                        batch = split_cube(test_iter.next(), add_context) # Get a new batch of 3D minicubes
             
                 # 2D model
                 else:
@@ -78,7 +78,7 @@ def train_model(model, optimizer, loss_fn, epochs, device, train_3d, train_iter,
             print(f'epoch {epoch}: epoch_train_loss={mean_train_loss:3.3f}')
 
         # save the model
-        path = f'../Weights/{model.__class__.__name__}_epoch{epoch}_step{step}_loss{mean_train_loss:3.3f}.h5'
+        path = f'../Weights/{model.__class__.__name__}_epoch{epoch}_loss{mean_train_loss:3.3f}.h5'
         torch.save(model.state_dict(), path)
 
     return train_losses, test_losses
