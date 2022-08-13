@@ -25,10 +25,12 @@ Labels = {
     2: 'non-enhancing tumor',
     3: 'enhancing tumour'}
 
-def split_cube(input_batch):
+def split_cube(input_batch, add_context):
     """
     Takes a batch of 3d cubes (with different modalities) as input and
     splits each cube into 8 patches (each cube dimension is halved).
+    If add_context is set to True, overlaps of 20 pixels between patches are 
+    added in each direction, so that context is preserved at the splitting borders.
     If the batchsize is > 1 then each minicube_batch contains the minicubes
     from that position of each big cube in the input batch.
     Returns a batch of 3d Minicubes.
@@ -46,72 +48,29 @@ def split_cube(input_batch):
     batch['image'] = F.pad(batch['image'], image_padding, 'constant', 0)
     batch['label'] = F.pad(batch['label'], label_padding, 'constant', 0)
     
-    # split images
-    minicube_batch0 = batch['image'][:, :, :80, :96,  :96]
-    minicube_batch1 = batch['image'][:, :, :80, :96,   96:]
-    minicube_batch2 = batch['image'][:, :, :80,  96:, :96]
-    minicube_batch3 = batch['image'][:, :, :80,  96:,  96:]
-    
-    minicube_batch4 = batch['image'][:, :, 80:, :96,  :96]
-    minicube_batch5 = batch['image'][:, :, 80:, :96,   96:]
-    minicube_batch6 = batch['image'][:, :, 80:,  96:, :96]
-    minicube_batch7 = batch['image'][:, :, 80:,  96:,  96:]
-    
-    # assemble minicubes into batch
-    minicube_batch['image'] = torch.cat(
-        (minicube_batch0, minicube_batch1, minicube_batch2, minicube_batch3,
-         minicube_batch4, minicube_batch5, minicube_batch6, minicube_batch7), 0)
-    
-    # split labels
-    label_batch0 = batch['label'][:, :, :80, :96,  :96]
-    label_batch1 = batch['label'][:, :, :80, :96,   96:]
-    label_batch2 = batch['label'][:, :, :80,  96:, :96]
-    label_batch3 = batch['label'][:, :, :80,  96:,  96:]
-    
-    label_batch4 = batch['label'][:, :, 80:, :96,  :96]
-    label_batch5 = batch['label'][:, :, 80:, :96,   96:]
-    label_batch6 = batch['label'][:, :, 80:,  96:, :96]
-    label_batch7 = batch['label'][:, :, 80:,  96:,  96:]
-    
-    # assemble labels into batch
-    minicube_batch['label'] = torch.cat(
-        (label_batch0, label_batch1, label_batch2, label_batch3, 
-         label_batch4, label_batch5, label_batch6, label_batch7), 0)
-    
-    return minicube_batch
+    if add_context:
+        # split images with context (20px added for each axis)
+        minicube_batch0 = batch['image'][:, :, :100, :116, :116]
+        minicube_batch1 = batch['image'][:, :, :100, :116,  76:]
+        minicube_batch2 = batch['image'][:, :, :100,  76:, :116]
+        minicube_batch3 = batch['image'][:, :, :100,  76:,  76:]
+        
+        minicube_batch4 = batch['image'][:, :, 60:, :116, :116]
+        minicube_batch5 = batch['image'][:, :, 60:, :116,  76:]
+        minicube_batch6 = batch['image'][:, :, 60:,  76:, :116]
+        minicube_batch7 = batch['image'][:, :, 60:,  76:,  76:]
 
-def split_cube_with_context(input_batch):
-    """
-    Takes a batch of 3d cubes (with different modalities) as input and
-    splits each cube into 8 patches with overlaps of 20 pixel in each direction, 
-    so that context is preserved at the splitting borders.
-    If the batchsize is > 1 then each minicube_batch contains the minicubes
-    from that position of each big cube in the input batch.
-    Returns a batch of 3d Minicubes.
-    """
-    minicube_batch = dict()
-
-    # copy tensor so that the function has no side effects
-    batch = dict()
-    batch['image'] = input_batch['image'].clone()
-    batch['label'] = input_batch['label'].clone()
-    
-    # add zero-padding slices
-    image_padding = (0,0, 0,0, 3,2, 0,0, 0,0)
-    label_padding = (0,0, 0,0, 3,2, 0,0)
-    batch['image'] = F.pad(batch['image'], image_padding, 'constant', 0)
-    batch['label'] = F.pad(batch['label'], label_padding, 'constant', 0)
-    
-    # split images
-    minicube_batch0 = batch['image'][:, :, :100, :116, :116]
-    minicube_batch1 = batch['image'][:, :, :100, :116,  76:]
-    minicube_batch2 = batch['image'][:, :, :100,  76:, :116]
-    minicube_batch3 = batch['image'][:, :, :100,  76:,  76:]
-    
-    minicube_batch4 = batch['image'][:, :, 60:, :116, :116]
-    minicube_batch5 = batch['image'][:, :, 60:, :116,  76:]
-    minicube_batch6 = batch['image'][:, :, 60:,  76:, :116]
-    minicube_batch7 = batch['image'][:, :, 60:,  76:,  76:]
+    else:   
+        # split images without context
+        minicube_batch0 = batch['image'][:, :, :80, :96,  :96]
+        minicube_batch1 = batch['image'][:, :, :80, :96,   96:]
+        minicube_batch2 = batch['image'][:, :, :80,  96:, :96]
+        minicube_batch3 = batch['image'][:, :, :80,  96:,  96:]
+        
+        minicube_batch4 = batch['image'][:, :, 80:, :96,  :96]
+        minicube_batch5 = batch['image'][:, :, 80:, :96,   96:]
+        minicube_batch6 = batch['image'][:, :, 80:,  96:, :96]
+        minicube_batch7 = batch['image'][:, :, 80:,  96:,  96:]
     
     # assemble minicubes into batch
     minicube_batch['image'] = torch.cat(
@@ -168,7 +127,7 @@ def concat_minicubes(segmented_minicubes):
 
 
 def segment_entire_3d_cube(model, batch, device):
-    minicube_batch = split_cube(batch) # split cubes into minicubes
+    minicube_batch = split_cube(batch, add_context=True) # split cubes into minicubes
     sm = nn.Softmax(dim=1)
     
     for minicube_idx in range(8):
