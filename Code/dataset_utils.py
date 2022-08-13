@@ -126,8 +126,8 @@ def concat_minicubes(segmented_minicubes):
     return segmented_cube
 
 
-def segment_entire_3d_cube(model, batch, device):
-    minicube_batch = split_cube(batch, add_context=True) # split cubes into minicubes
+def segment_entire_3d_cube(model, batch, add_context, device):
+    minicube_batch = split_cube(batch, add_context) # split cubes into minicubes
     sm = nn.Softmax(dim=1)
     
     for minicube_idx in range(8):
@@ -211,13 +211,13 @@ def plot_minicube_pred_label(model, minicube_batch, device, minicube_idx, height
     _plot_slice(pred_slice, label_slice, height)
 
 
-def plot_cube_pred_label(model, batch, device, height=70):
+def plot_cube_pred_label(model, batch, add_context, device, height=70):
     """
     Takes a raw 3d batch as input and outputs a comparison plot between 
     a slice of the prediction and the label at the given height.
     """
     # make prediction on entire cube
-    segmented_cube = segment_entire_3d_cube(model, batch, device)
+    segmented_cube = segment_entire_3d_cube(model, batch, add_context, device)
     
     pred_slice = segmented_cube[height, :, :].cpu()
     label_slice = batch['label'][0, 0, height, :, :].cpu()
