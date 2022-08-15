@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 import numpy as np
@@ -78,7 +79,10 @@ def train_model(model, optimizer, loss_fn, epochs, device, train_3d, add_context
             print(f'epoch {epoch}: epoch_train_loss={mean_train_loss:3.3f}')
 
         # save the model
-        path = f'../Weights/{model.__class__.__name__}_epoch{epoch}_loss{mean_train_loss:3.3f}.h5'
+        weights_path = os.path.join('..', 'Weights')
+        if not os.path.exists(weights_path):
+            os.makedirs(weights_path)
+        path = os.path.join('..', 'Weights', f'{model.__class__.__name__}_epoch{epoch}_loss{mean_train_loss:3.3f}.h5')
         torch.save(model.state_dict(), path)
 
     return train_losses, test_losses
