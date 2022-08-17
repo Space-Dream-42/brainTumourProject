@@ -269,11 +269,13 @@ def decrop_batch(img_batch):
     return decropped_batch
 
 def center_crop(z,x,y,img):
-    to_crop_z = img.shape[1] - z
-    to_crop_x = img.shape[2] - x
-    to_crop_y = img.shape[3] - y
+    to_crop_z = img.shape[2] - z
+    to_crop_x = img.shape[3] - x
+    to_crop_y = img.shape[4] - y
     get_bound = lambda x,length: (x//2,(length-x//2)) if x%2 == 0 else (x//2 + 1, length-x//2)
-    slice_z = get_bound(to_crop_z,img.shape[1])
-    slice_x = get_bound(to_crop_x,img.shape[2])
-    slice_y = get_bound(to_crop_y,img.shape[3])
-    return img[:,slice_z[0]:slice_z[1],slice_x[0]:slice_x[1],slice_y[0]:slice_y[1]]
+    # switch to torch.div
+    # get_bound = lambda x,length: (torch.div(x, 2, 'floor'),length-torch.div(x//2)) if x%2 == 0 else (torch.div(x, 2, 'floor') + 1, length-torch.div(x//2))
+    slice_z = get_bound(to_crop_z,img.shape[2])
+    slice_x = get_bound(to_crop_x,img.shape[3])
+    slice_y = get_bound(to_crop_y,img.shape[4])
+    return img[:,:,slice_z[0]:slice_z[1],slice_x[0]:slice_x[1],slice_y[0]:slice_y[1]]
