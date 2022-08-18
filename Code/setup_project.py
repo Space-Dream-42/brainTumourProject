@@ -1,4 +1,3 @@
-from cProfile import label
 import numpy as np
 import json
 import os
@@ -35,12 +34,15 @@ def folder_structure_exits():
     return os.path.exists(os.path.join(parent_dir, 'Data'))
     
 def create_folder_structure():
-    os.mkdir(data_dir)
-    os.mkdir(train_images_dir)
-    os.mkdir(train_labels_dir)
-    os.mkdir(test_images_dir)
-    os.mkdir(test_labels_dir)
-
+    try:
+        os.mkdir(data_dir)
+        os.mkdir(train_images_dir)
+        os.mkdir(train_labels_dir)
+        os.mkdir(test_images_dir)
+        os.mkdir(test_labels_dir)
+    except FileExistsError:
+        # the dir already exists
+        pass
 
 def get_numpy_arr_of_nii_file(path):
     sitk_arr = sitk.ReadImage(path)
