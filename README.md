@@ -16,5 +16,5 @@ BT_Segmentation_Project
     |_ Weights                      (trained model weights)
 ```
 3. Swtich to "Code" as a working directory
-4. Run "python3 set_up_project.py" in your shell, to extract the nii-files to numpy file (Attention!: have in mind that you need at least 300GB of storage)
+4. Run "python3 setup_project.py" in your shell, to extract the nii-files to numpy file (Attention!: have in mind that you need at least 70GB of storage)
 5. If you want to save memory, you can delete "imagesTr", "labelsTr" and "imagesTs" in the folder "BT_Segmentation_Project/Task01_BrainTumour"
