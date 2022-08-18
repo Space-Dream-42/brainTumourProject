@@ -12,6 +12,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import from_levels_and_colors
 import os
+from matplotlib.animation import FuncAnimation
+import matplotlib.cm as cm
+from matplotlib.gridspec import GridSpec
+
 
 Scans = {
     0: 'FLAIR',
@@ -163,7 +167,7 @@ def plot_batch(batch, num_rows=2, height=70):
                 ax.imshow(x[i%4, height, :, :], cmap="gray", origin="lower")
                 
     plt.show()
-    plt.close()
+    #plt.close()
 
 
 def _plot_slice(pred_slice, label_slice, height=70):
@@ -175,7 +179,7 @@ def _plot_slice(pred_slice, label_slice, height=70):
     slice_labels = ['prediction', 'label']
     fig, axes = plt.subplots(ncols=2)
     fig.set_size_inches(10, 5)
-    
+
     
     for ax, data, slice_label in zip(axes, [pred_slice, label_slice], slice_labels):
         im = ax.imshow(data, 
@@ -189,6 +193,62 @@ def _plot_slice(pred_slice, label_slice, height=70):
     cbar.ax.set_yticklabels([Labels[i] for i in range(4)], fontsize=12)
     plt.show()
     plt.close()
+
+
+def predict_whole_cube_2d(model, batch, device):
+    image_to_predict_on = slice_cube(batch)['image']
+    prediction = torch.zeros((160, 192, 192))
+    for i in range(160):
+        probs, out = torch.max(torch.sigmoid(model.forward(image_to_predict_on[i].to(device)).cpu()), dim=1)
+        prediction[i] = out[0]
+    return prediction
+
+
+def animate_cube(model, batch, add_context, device, is_3d=True):
+    if is_3d:
+        pred_cube = segment_entire_3d_cube(model, batch, add_context, device).cpu()
+    else:
+        pred_cube = predict_whole_cube_2d(model, batch, device)
+    label_slice = batch['label'][0, 0, :, :, :].cpu()
+    image_height = len(pred_cube)
+    colors = [(0.3, 0.4, 0.7), (0.1, 0.9, 0.5), (0.9, 0.7, 0.2), (0.9, 0.4, 0.0)]
+    cmap, norm = from_levels_and_colors([0, 1, 2, 3, 4], colors)
+
+    fig = plt.figure(tight_layout=True)
+    gs = GridSpec(2, 4, figure=fig)
+    ax1 = fig.add_subplot(gs[0, 0])
+    ax2 = fig.add_subplot(gs[0, 1])
+    ax3 = fig.add_subplot(gs[0, 2])
+    ax4 = fig.add_subplot(gs[0, 3])
+    ax5 = fig.add_subplot(gs[1, :2])
+    ax6 = fig.add_subplot(gs[1, 2:])
+    axes = fig.axes
+    fig.set_size_inches(10, 10)
+    plt.rcParams.update({'axes.labelsize': 14})
+
+    def animation_step_slice(height):
+        height = height*4
+        current_pred_slice = pred_cube[height]
+        current_label_slice = label_slice[height]
+
+        for i, ax in enumerate(axes[:4]):
+            ax.clear()
+            ax.imshow(batch['image'][0, i, height, :, :], cmap="gray")
+
+        slice_labels = ['prediction', 'label']
+        for ax, data, slice_label in zip(axes[4:], [current_pred_slice, current_label_slice], slice_labels):
+            ax.clear()
+            ax.imshow(data, cmap=cmap, norm=norm, interpolation='none')
+            ax.set(xlabel=slice_label)
+            ax.tick_params(labelsize=12)
+
+    cbar = fig.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), ticks=[0, 1, 2, 3], orientation='vertical')
+    cbar.ax.set_yticklabels([Labels[i] for i in range(4)], fontsize=12)
+
+    ani = FuncAnimation(fig, animation_step_slice, frames=int(image_height/4)-2, interval=100, repeat=True)
+    return ani
+
+
 
 
 def plot_minicube_pred_label(model, minicube_batch, device, minicube_idx, height=70):
