@@ -8,13 +8,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import from_levels_and_colors
-import os
 from matplotlib.animation import FuncAnimation
 import matplotlib.cm as cm
 from matplotlib.gridspec import GridSpec
+
+from sklearn.metrics import confusion_matrix
+import seaborn as sn
+import pandas as pd
+import numpy as np
 
 
 Scans = {
@@ -249,8 +252,6 @@ def animate_cube(model, batch, add_context, device, is_3d=True):
     return ani
 
 
-
-
 def plot_minicube_pred_label(model, minicube_batch, device, minicube_idx, height=70):
     """
     Takes a batch of minicubes as input and outputs a comparison plot between a slice 
@@ -340,3 +341,21 @@ def center_crop(z,x,y,img):
     slice_x = get_bound(to_crop_x,img.shape[3])
     slice_y = get_bound(to_crop_y,img.shape[4])
     return img[:,:,slice_z[0]:slice_z[1],slice_x[0]:slice_x[1],slice_y[0]:slice_y[1]]
+
+
+def plot_confusion_matrix(testloader, model):
+    y_pred = []
+    y_true = []
+    for inputs, labels in testloader:
+        output = model(inputs)
+        output = (torch.max(torch.exp(output), 1)[1]).data.cpu().numpy()
+        y_pred.extend(output)
+        labels = labels.data.cpu().numpy()
+        y_true.extend(labels)
+    classes = [Labels[i] for i in range(4)]
+    cf_matrix = confusion_matrix(y_true, y_pred)
+    df_cm = pd.DataFrame(cf_matrix / np.sum(cf_matrix) * 10, index=[i for i in classes], columns=[i for i in classes])
+    plt.figure(figsize=(12, 7))
+    sn.heatmap(df_cm, annot=True)
+    return plt
+
