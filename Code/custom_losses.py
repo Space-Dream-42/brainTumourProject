@@ -2,6 +2,9 @@ import torch.nn as nn
 import torch
 from dataset_utils import split_cube, slice_cube
 
+## Gratefully borrowed (with some modification) from 
+## https://github.com/Mr-TalhaIlyas/Loss-Functions-Package-Tensorflow-Keras-PyTorch
+
 class DiceLoss(nn.Module):
     def __init__(self, weight=None, size_average=True):
         super(DiceLoss, self).__init__()
@@ -27,6 +30,38 @@ def dice_loss_one_image(inputs, targets, smooth=1):
     dice = (2. * intersection + smooth) / (inputs.sum() + targets.sum() + smooth)
 
     return 1 - dice
+
+
+class FocalTverskyLoss(nn.Module):
+    def __init__(self, weight=None, size_average=True):
+        super(FocalTverskyLoss, self).__init__()
+
+    def forward(self, inputs, targets):
+        loss_count = 0
+        for i in range(len(inputs[0])):
+            current_class = targets.clone()
+            current_class[current_class != i] = 0
+            current_class[current_class == i] = 1
+            loss_count += focaltversky_loss_one_image(inputs[:, i], current_class)
+        return loss_count / 4
+
+
+def focaltversky_loss_one_image(inputs, targets, smooth=1, alpha=0.7, beta=0.3, gamma=4/3):
+    inputs = torch.sigmoid(inputs)
+
+    # flatten label and prediction tensors
+    inputs = inputs.view(-1)
+    targets = targets.view(-1)
+    
+    # True Positives, False Positives, False Negatives
+    TP = (inputs * targets).sum()    
+    FP = ((1-targets) * inputs).sum()
+    FN = (targets * (1-inputs)).sum()
+    
+    Tversky = (TP + smooth) / (TP + alpha*FP + beta*FN + smooth)  
+    FocalTversky = (1 - Tversky)**gamma
+                    
+    return FocalTversky
 
 
 def get_minicube_batch_loss(model, loss_fn, minicube_batch, step, device):
