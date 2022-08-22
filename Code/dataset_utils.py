@@ -343,10 +343,17 @@ def center_crop(z,x,y,img):
     return img[:,:,slice_z[0]:slice_z[1],slice_x[0]:slice_x[1],slice_y[0]:slice_y[1]]
 
 
-def plot_confusion_matrix(testloader, model):
+def plot_confusion_matrix(test_iter, model, train_3d, add_context, device):
     y_pred = []
     y_true = []
-    for inputs, labels in testloader:
+    for i in range(3):
+        batch = test_iter.next()
+        if train_3d:
+            batch = split_cube(batch, add_context)
+        else:
+            batch = slice_cube(batch)
+        inputs = batch['image'].to(device)
+        labels = batch['label'].to(device)
         output = model(inputs)
         output = (torch.max(torch.exp(output), 1)[1]).data.cpu().numpy()
         y_pred.extend(output)
