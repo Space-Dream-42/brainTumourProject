@@ -45,7 +45,7 @@ Please mention the github repos that you used for your solution.
 - Architectures: \
    Here you can find all model architectures that we build.
 
-### Code documantion with example invocation
+### Code documantion with example invocation:
 
 custom_losses.py: 
 | Function/Class| Description | Example |
