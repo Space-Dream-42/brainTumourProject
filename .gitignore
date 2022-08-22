@@ -6,3 +6,5 @@
 /Code/.idea/
 /Saved_Models/
 /Weights/
+*/__pycache__
+*/Task01_BrainTumour.tar
