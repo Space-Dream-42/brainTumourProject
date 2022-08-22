@@ -6,6 +6,10 @@ from dataset_utils import split_cube, slice_cube
 ## https://github.com/Mr-TalhaIlyas/Loss-Functions-Package-Tensorflow-Keras-PyTorch
 
 class DiceLoss(nn.Module):
+    """
+    Computes the dice-loss for each output-channel of the model.
+    The label has to be split into 4 images to achieve this.
+    """
     def __init__(self, weight=None, size_average=True):
         super(DiceLoss, self).__init__()
 
@@ -33,6 +37,10 @@ def dice_loss_one_image(inputs, targets, smooth=1):
 
 
 class FocalTverskyLoss(nn.Module):
+    """
+    Computes the focal-tversky-loss for each output-channel of the model.
+    The label has to be split into 4 images to achieve this.
+    """
     def __init__(self, weight=None, size_average=True):
         super(FocalTverskyLoss, self).__init__()
 
@@ -65,6 +73,9 @@ def focaltversky_loss_one_image(inputs, targets, smooth=1, alpha=0.7, beta=0.3, 
 
 
 def get_minicube_batch_loss(model, loss_fn, minicube_batch, step, device):
+    """
+    Takes two minicubes from one image each step and return their loss.
+    """
     number_of_cubes = int(minicube_batch['image'].shape[0]/4)
     if step % 4 == 0:
         voxel_logits_batch = model.forward(minicube_batch['image'][:number_of_cubes, :, :, :, :].to(device))
@@ -90,6 +101,9 @@ def get_minicube_batch_loss(model, loss_fn, minicube_batch, step, device):
 
 
 def get_loss(model, loss_fn, has_minicubes, step, device, batch):
+    """
+    Adapts the calculation of the loss to the shape of the model.
+    """
     if has_minicubes:
         loss = get_minicube_batch_loss(model, loss_fn, batch, step, device)
     else:

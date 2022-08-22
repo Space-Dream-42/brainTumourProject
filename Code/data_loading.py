@@ -3,6 +3,9 @@ import numpy as np
 import os
 
 class BraTS_Dataset():
+    """
+    Custom DataSet-class. Can be used for training or test dataset.
+    """
     def __init__(self, path, dataset_type='training'):
         self.path = path  # this should be the root dir for extracted (or cropped) files
         if dataset_type == 'training':
@@ -61,6 +64,9 @@ class BraTS_Dataset():
 
 
 def get_train_test_iters(path, batch_size=1, shuffle=True, num_workers=0):
+    """
+    Transforms the custom Dataset-class into torch.DataLoaders and puts an iterator around them.
+    """
     train_data = BraTS_Dataset(path, dataset_type='training')
     test_data = BraTS_Dataset(path, dataset_type='test')
     trainloader = torch.utils.data.DataLoader(

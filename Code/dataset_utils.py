@@ -101,6 +101,9 @@ def split_cube(input_batch, add_context):
 
 
 def slice_cube(batch):
+    """
+    Pads the image and puts the height dimension first to make iterating through one image easier.
+    """
     twod_images_batch = dict()
 
     # add zero-padding slices
@@ -131,6 +134,9 @@ def concat_minicubes(segmented_minicubes):
 
 
 def segment_entire_3d_cube(model, batch, add_context, device):
+    """
+    Applies 3d image segementation to one MRI image.
+    """
     minicube_batch = split_cube(batch, add_context) # split cubes into minicubes
     sm = nn.Softmax(dim=1)
     
@@ -196,6 +202,9 @@ def _plot_slice(pred_slice, label_slice, height=70):
 
 
 def predict_whole_cube_2d(model, batch, device):
+    """
+    Segments one MRI image into slices, do 2D segmentation on them and concat them back to one image-batch.
+    """
     image_to_predict_on = slice_cube(batch)['image']
     prediction = torch.zeros((160, 192, 192))
     for i in range(160):
@@ -205,6 +214,10 @@ def predict_whole_cube_2d(model, batch, device):
 
 
 def animate_cube(model, batch, add_context, device, is_3d=True):
+    """
+    Plots a horizontal slice of the MRI-Image for every fourth image starting from the bottom.
+    All four input channels, the segmentation and the label is plotted.
+    """
     if is_3d:
         pred_cube = segment_entire_3d_cube(model, batch, add_context, device).cpu()
     else:
@@ -330,6 +343,10 @@ def decrop_batch(img_batch):
 
 
 def center_crop(z,x,y,img):
+    """
+    Crops the image so the output image has the shape (x,y,z)
+    and is as much in the center of the original image as possible.
+    """
     to_crop_z = img.shape[2] - z
     to_crop_x = img.shape[3] - x
     to_crop_y = img.shape[4] - y
