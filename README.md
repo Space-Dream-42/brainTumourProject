@@ -17,12 +17,12 @@ BT_Segmentation_Project
     |_ Weights                      (trained model weights)
 ```
 3. Swtich to "Code" as a working directory
-4. Run "python3 setup_project.py" in your shell, to extract the nii-files to numpy file (Attention!: have in mind that you need at most 100GB of storage)
+4. Run "python3 setup_project.py" in your shell, to extract the nii-files to numpy file (Attention!: have in mind that the dataset needs 70+ GB of storage)
 
 ## Useful links:
 [Github repo](https://github.com/Space-Dream-42/brainTumourProject) \
 [Model files](https://drive.google.com/drive/folders/1pTMtH2817WEceukKP52Lep9QR-ZB2WKz?usp=sharing) \
-[Our paper]()
+[Our executive report]()
 
 ## Used repos:
 Please mention the github repos that you used for your solution.
@@ -45,7 +45,10 @@ Please mention the github repos that you used for your solution.
 - Architectures: \
    Here you can find all model architectures that we build.
 
-### Code documantion with example invocation:
+### Repo file-structure and dependencies:
+<img src="https://github.com/Space-Dream-42/brainTumourProject/blob/main/images/filestructure.jpg?raw=true" width="700" height="500"/>
+
+### Code documention with example calls:
 
 custom_losses.py: 
 | Function/Class| Description | Example |
