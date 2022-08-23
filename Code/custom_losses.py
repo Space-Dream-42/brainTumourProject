@@ -80,23 +80,19 @@ def get_minicube_batch_loss(model, loss_fn, minicube_batch, step, device):
     if step % 4 == 0:
         voxel_logits_batch = model.forward(minicube_batch['image'][:number_of_cubes, :, :, :, :].to(device))
         loss = loss_fn(voxel_logits_batch, minicube_batch['label'][:number_of_cubes, :, :, :].long().to(device))
-        return loss
 
     elif step % 4 == 1:
         voxel_logits_batch = model.forward(minicube_batch['image'][number_of_cubes:number_of_cubes*2, :, :, :, :].to(device))
         loss = loss_fn(voxel_logits_batch, minicube_batch['label'][number_of_cubes:number_of_cubes*2, :, :, :].long().to(device))
-        return loss
 
     elif step % 4 == 2:
         voxel_logits_batch = model.forward(minicube_batch['image'][number_of_cubes*2:number_of_cubes*3, :, :, :, :].to(device))
         loss = loss_fn(voxel_logits_batch, minicube_batch['label'][number_of_cubes*2:number_of_cubes*3, :, :, :].long().to(device))
-        return loss
 
     else:
         voxel_logits_batch = model.forward(minicube_batch['image'][number_of_cubes*3:, :, :, :, :].to(device))
         loss = loss_fn(voxel_logits_batch, minicube_batch['label'][number_of_cubes*3:, :, :, :].long().to(device))
-        return loss
-
+    return loss
 
 
 

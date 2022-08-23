@@ -7,7 +7,11 @@ from matplotlib.animation import FuncAnimation
 import matplotlib.cm as cm
 from matplotlib.gridspec import GridSpec
 from dataset_utils import segment_entire_3d_cube, predict_whole_cube_2d, Labels
-
+import seaborn as sn
+import pandas as pd
+from sklearn.metrics import confusion_matrix
+from dataset_utils import split_cube, slice_cube
+import numpy as np
 
 def plot_batch(batch, num_rows=2, height=70):
     
@@ -149,3 +153,72 @@ def plot_loss(train_losses, test_losses):
     plt.legend()
     plt.show()
     plt.close()
+
+def plot_confusion_matrix(test_iter, model, train_3d, add_context, device):
+    model = model.to(device)
+    sm = nn.Softmax(dim=1)
+    y_pred = []
+    y_true = []
+    for i, raw_batch in enumerate(test_iter):
+        if train_3d:
+            batch = split_cube(raw_batch, add_context)
+        else:
+            batch = slice_cube(raw_batch)
+
+        inputs = batch['image'].to(device)
+        labels = batch['label'].to(device)
+        # 3d model
+        if train_3d:
+            for i in range(8):
+                prediction = model.forward(batch['image'][None, i, :, :, :, :].to(device))
+                probs, out = torch.max(prediction, dim=1)
+                y_pred += torch.flatten(out).cpu()
+                y_true += torch.flatten(labels[i]).cpu()
+                del prediction, probs, out
+                print(i)
+
+        # 2d model
+        else:
+            #output = torch.zeros((160, 4, 192, 192))
+            print(model(inputs[i]).shape)
+            for i in range(160):
+                output = model(inputs[i])
+
+                probs, out = torch.max(output, dim=1)
+                y_pred += torch.flatten(out).cpu()
+                label_slice = labels[i]
+                y_true += torch.flatten(label_slice).cpu()
+
+    classes = [Labels[i] for i in range(4)]
+    cf_matrix = confusion_matrix(y_true, y_pred)
+    df_cm = pd.DataFrame(cf_matrix, index=[i for i in classes], columns=[i for i in classes])
+    plt.figure(figsize=(12, 7))
+    sn.heatmap(df_cm, annot=True)
+    return plt, df_cm
+
+
+def get_positives_negatives_from_cm(cf_matrix):
+    tp = []
+    fp = []
+    tn = []
+    fn = []
+    for i in range(4):
+        tp.append(cf_matrix[i, i])
+        fp.append(np.sum(cf_matrix[i]) - cf_matrix[i, i])
+        fn.append(np.sum(cf_matrix[:, i]) - cf_matrix[i, i])
+        tn.append(np.sum(cf_matrix) - tp[i] - fp[i] - fn[i])
+
+    # print counts
+    for i in range(4):
+        print(f'{Labels[i]}:')
+        print(f'tp: {tp[i]}')
+        print(f'fp: {fp[i]}')
+        print(f'tn: {tn[i]}')
+        print(f'fn: {fn[i]}')
+        precision = tp[i]/(tp[i]+fp[i])
+        recall = tp[i]/(tp[i]+fn[i])
+        print(f'precision: {precision:.3f}')
+        print(f'recall: {recall:.3f}')
+        print(f'accuracy: {tp[i]/(tp[i]+tn[i]+fn[i]+fp[i]):.3f}')
+        print(f'f1_score: {(2*precision*recall)/(precision+recall):.3f}\n')
+

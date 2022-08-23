@@ -206,3 +206,13 @@ def center_crop(z,x,y,img):
     slice_x = get_bound(to_crop_x,img.shape[3])
     slice_y = get_bound(to_crop_y,img.shape[4])
     return img[:,:,slice_z[0]:slice_z[1],slice_x[0]:slice_x[1],slice_y[0]:slice_y[1]]
+
+
+def get_minicube_prediction(model, minicube_batch, step, device):
+    """
+    Takes two minicubes from one image each step and return their predictions.
+    """
+    #number_of_cubes = int(minicube_batch['image'].shape[0]/4)
+    voxel_logits_batch = model.forward(minicube_batch['image'][step, :, :, :, :].to(device))
+
+    return voxel_logits_batch
