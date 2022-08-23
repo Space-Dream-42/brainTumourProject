@@ -8,10 +8,12 @@ class BraTS_Dataset():
     """
     def __init__(self, path, dataset_type='training'):
         self.path = path  # this should be the root dir for extracted (or cropped) files
-        if dataset_type == 'training':
+        self.dataset_type = dataset_type
+        
+        if self.dataset_type == 'training':
             self.imgTr_dir = os.path.join(path, 'imagesTr')
             self.labelsTr_dir = os.path.join(path, 'labelsTr')
-        elif dataset_type == 'test':
+        elif self.dataset_type == 'test':
             self.imgTr_dir = os.path.join(path, 'imagesTs')
             self.labelsTr_dir = os.path.join(path, 'labelsTs')
 
@@ -37,6 +39,12 @@ class BraTS_Dataset():
         The function returns the sample at the given index (idx)
         by finding the path and returning the numpy array.
         """
+        if self.dataset_type == 'training':
+            idx = idx % 400
+        
+        if self.dataset_type == 'test':
+            idx = idx % 84
+            
         # load image
         img_filename = self.imagesTr[idx]
         img_path = os.path.join(self.imgTr_dir, img_filename)
@@ -50,7 +58,8 @@ class BraTS_Dataset():
 
         item = {
             'image': img,
-            'label': label
+            'label': label,
+            'idx': idx
         }
         return item
 
