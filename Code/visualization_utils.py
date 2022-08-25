@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-
+import os
 import matplotlib.pyplot as plt
 from matplotlib.colors import from_levels_and_colors
 from matplotlib.animation import FuncAnimation
@@ -68,6 +68,7 @@ def animate_cube(model, batch, add_context, device, is_3d=True):
         pred_cube = segment_entire_3d_cube(model, batch, add_context, device).cpu()
     else:
         pred_cube = predict_whole_cube_2d(model, batch, device)
+    print(pred_cube.shape)
     label_slice = batch['label'][0, 0, :, :, :].cpu()
     image_height = len(pred_cube)
     colors = [(0.3, 0.4, 0.7), (0.1, 0.9, 0.5), (0.9, 0.7, 0.2), (0.9, 0.4, 0.0)]
@@ -191,6 +192,7 @@ def plot_confusion_matrix(test_iter, model, train_3d, add_context, device):
 
     classes = [Labels[i] for i in range(4)]
     cf_matrix = confusion_matrix(y_true, y_pred)
+    np.save(os.path.join('..', 'Losses', f'{model.__class__.__name__}_cf_matrix'), cf_matrix)
     df_cm = pd.DataFrame(cf_matrix, index=[i for i in classes], columns=[i for i in classes])
     plt.figure(figsize=(12, 7))
     sn.heatmap(df_cm, annot=True)

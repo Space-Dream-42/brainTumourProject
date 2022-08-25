@@ -17,8 +17,8 @@ class BraTS_Dataset():
             self.imgTr_dir = os.path.join(path, 'imagesTs')
             self.labelsTr_dir = os.path.join(path, 'labelsTs')
 
-        print(self.imgTr_dir)
-        print(self.labelsTr_dir)
+        #print(self.imgTr_dir)
+        #print(self.labelsTr_dir)
 
         self.imagesTr = []
         self.labelsTr = []

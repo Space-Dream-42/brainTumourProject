@@ -23,14 +23,14 @@ def train_model(model, optimizer, loss_fn, epochs, device, dataset_path, batch_s
         epoch_train_losses = []
 
         for step, raw_batch in enumerate(train_iter):
-            print(step)
+            #print(step)
             # 3D model
             if train_3d:
                 batch = split_cube(raw_batch, add_context)  # Get a new batch of 3D minicubes
                 for step_within_image in range(4):
                     loss = get_loss(model, loss_fn, train_3d, step_within_image, device, batch)
                     epoch_train_losses.append(loss.detach().cpu().numpy())
-
+                    
                     # backprop loss
                     optimizer.zero_grad()
                     loss.backward()

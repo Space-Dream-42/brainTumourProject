@@ -153,7 +153,7 @@ def predict_whole_cube_2d(model, batch, device):
     image_to_predict_on = slice_cube(batch)['image']
     prediction = torch.zeros((160, 192, 192))
     for i in range(160):
-        probs, out = torch.max(torch.sigmoid(model.forward(image_to_predict_on[i].to(device)).cpu()), dim=1)
+        probs, out = torch.max(torch.sigmoid(model(image_to_predict_on[i].to(device)).cpu()), dim=1)
         prediction[i] = out[0]
     return prediction
 
