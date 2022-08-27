@@ -1,6 +1,7 @@
-# Brain Tumour Segmentation (BraTS)
+# <div align="center">Brain Tumour Segmentation (BraTS) <br/> using an U-Net architecture</div>
 
-## How to set up the project:
+## How to run our code
+### Set up the project
 1. Download "Task01_BrainTumour.tar" under the website http://medicaldecathlon.com and extract the tar file.
 2. Provide the following folder structure:
 ```
@@ -16,40 +17,52 @@ BT_Segmentation_Project
        |_ imagesTs
     |_ Weights                      (trained model weights)
 ```
-3. Swtich to "Code" as a working directory
+3. Change into "Code" as a working directory
 4. Run "python3 setup_project.py" in your shell, to extract the nii-files to numpy file (Attention!: have in mind that the dataset needs 70+ GB of storage)
 
-## Useful links:
-[Github repo](https://github.com/Space-Dream-42/brainTumourProject) \
-[Model files](https://drive.google.com/drive/folders/1pTMtH2817WEceukKP52Lep9QR-ZB2WKz?usp=sharing) \
-[Our executive report]()
 
-## Used repos:
-Please mention the github repos that you used for your solution.
+### Additional ressources for our code
+<details>
+  <summary>High-level code overview (Click to expand)</summary>
 
-## How to run the code:
+### Code Overview
+#### Notebooks
+- demo.ipynb:<br/>
+Here we are executed our code, extracted results from it and visualized our results for our paper. Every discovery that we mention in our paper comes from here.
 
-### Where can i find what (abstract discription)?
-- demo.ipynb: \
-   Here we are executed our code, extracted results from it and visualized our results for our paper. Every discovery that we mention in our paper comes from here.
-- custom_losses.py: \
-   Here you can find custom programmed losses. In addition you can find get_loss to calculate automatically the loss for a provieded loss-function. 
-- data_loading.py: \
-   Here you can find the dataloader. The function get_train_test_iters gives you the data iterators. 
-- dataset_utils.py: \
-   Here you can find everything ragarding to manipulate and processing data.
-- train.py: \
-   Here you can find the train_model function to train a model.
-- Optional: \
-   Here we are experimenting with our code.
-- Architectures: \
-   Here you can find all model architectures that we build.
+#### Python-files
+- custom_losses.py:<br/>
+Here you can find custom programmed losses. In addition you can find get_loss to calculate automatically the loss for a provieded loss-function. 
 
-### Repo file-structure and dependencies:
-<img src="https://github.com/Space-Dream-42/brainTumourProject/blob/main/images/filestructure.jpg?raw=true" width="700" height="500"/>
+- data_loading.py:<br/>
+Here you can find the dataloader. The function get_train_test_iters gives you the data iterators. 
 
-### Code documention with example calls:
+- dataset_utils.py:<br/>
+Here you can find everything ragarding to manipulate and processing data.
 
+- train.py:<br/>
+Here you can find the train_model function to train a model.
+
+#### Folders
+- Optional:<br/>
+Here we are experimenting with our code.
+
+- Architectures:<br/>
+Here you can find all model architectures that we build.
+</details>
+
+
+<details>
+  <summary>File-structure figure (Click to expand)</summary>
+<p align="left"><img src="https://github.com/Space-Dream-42/brainTumourProject/blob/main/images/filestructure.jpg?raw=true" width="700" height="500"></p>
+</details>
+
+
+<details>
+  <summary>See our docs (Click to expand)</summary>
+    
+### Documentation with sample function calls
+    
 custom_losses.py: 
 | Function/Class| Description | Example |
 | ----------- | ----------- |----------- |
@@ -87,3 +100,15 @@ Architectures
 | ----------- | ----------- |----------- |
 | Header      | Title       |Title       |
 | Paragraph   | Text        |Text        |
+</details>
+
+
+## Useful links
+[Our executive report]()  <br/>
+[Github repo](https://github.com/Space-Dream-42/brainTumourProject) <br/>
+[Model files](https://drive.google.com/drive/folders/1pTMtH2817WEceukKP52Lep9QR-ZB2WKz?usp=sharing) <br/>
+
+
+## Acknowledgements
+Thanks to Noel & Prof. Lippert <br/>
+Please mention the github repos that you used for your solution.
