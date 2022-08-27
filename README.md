@@ -2,7 +2,7 @@
 
 ## How to run our code
 ### Set up the project
-1. Download "Task01_BrainTumour.tar" under the website http://medicaldecathlon.com and extract the tar file.
+1. Download "Task01_BrainTumour.tar" under the [Medical Segmentation Decathlon](http://medicaldecathlon.com) website and extract the tar file.
 2. Provide the following folder structure:
 ```
 BT_Segmentation_Project
