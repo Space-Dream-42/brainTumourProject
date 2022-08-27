@@ -58,51 +58,6 @@ Here you can find all model architectures that we build.
 </details>
 
 
-<details>
-  <summary>See our docs (Click to expand)</summary>
-    
-### Documentation with sample function calls
-    
-custom_losses.py: 
-| Function/Class| Description | Example |
-| ----------- | ----------- |----------- |
-| Header      | Title       |Title       |
-| Paragraph   | Text        |Text        |
-
-data_loading.py:
-| Function/Class| Description | Example |
-| ----------- | ----------- |----------- |
-| Header      | Title       |Title       |
-| Paragraph   | Text        |Text        |
-
-dataset_utils.py:
-| Function/Class| Description | Example |
-| ----------- | ----------- |----------- |
-| Header      | Title       |Title       |
-| Paragraph   | Text        |Text        |
-
-train.py:
-| Function/Class| Description | Example |
-| ----------- | ----------- |----------- |
-| Header      | Title       |Title       |
-| Paragraph   | Text        |Text        |
-
-Architectures
-* unet_2d.py: 
-
-| Function/Class| Description | Example |
-| ----------- | ----------- |----------- |
-| Header      | Title       |Title       |
-| Paragraph   | Text        |Text        |
-* unet_3d.py: 
-
-| Function/Class| Description | Example |
-| ----------- | ----------- |----------- |
-| Header      | Title       |Title       |
-| Paragraph   | Text        |Text        |
-</details>
-
-
 ## Useful links
 [Our executive report]()  <br/>
 [Github repo](https://github.com/Space-Dream-42/brainTumourProject) <br/>
