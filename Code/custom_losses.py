@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch
 from dataset_utils import split_cube, slice_cube
+import seg_metrics.seg_metrics as sg
 
 ## Gratefully borrowed (with some modification) from 
 ## https://github.com/Mr-TalhaIlyas/Loss-Functions-Package-Tensorflow-Keras-PyTorch
@@ -94,6 +95,10 @@ def get_minicube_batch_loss(model, loss_fn, minicube_batch, step, device):
         loss = loss_fn(voxel_logits_batch, minicube_batch['label'][number_of_cubes*3:, :, :, :].long().to(device))
     return loss
 
+def hausdorff_loss(inputs, targets):
+        return sg.write_metrics(labels=[0,1,2,3],gdth_img=targets,pred_img=inputs,metrics='hd95')[0]['hd95']
+
+
 
 
 def get_loss(model, loss_fn, has_minicubes, step, device, batch):
@@ -106,3 +111,4 @@ def get_loss(model, loss_fn, has_minicubes, step, device, batch):
         prediction_batch = model.forward(batch['image'][step%160, :, :, :, :].to(device))
         loss = loss_fn(prediction_batch, batch['label'][step%160, :, :, :, :].to(device))
     return loss
+
