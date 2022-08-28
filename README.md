@@ -65,11 +65,15 @@ Here you can find all model architectures that we build.
 
 
 ## Acknowledgements
-Thanks to Noel & Prof. Lippert <br/>
-### Used Github-repos
-Unet implementation inspiration: \
-https://github.com/Hsankesara/DeepResearch/blob/master/UNet/Unet.py \
-Adapted fuctions/classes like dice loss and focal tversky loss: \
-https://github.com/Mr-TalhaIlyas/Loss-Functions-Package-Tensorflow-Keras-PyTorch \
-Used examples within the documentation: \
-https://pytorch.org/docs/stable/index.html \
+We would like to thank Prof. Dr. Chistoph Lippert, Tahir Miriyev, Noel Danz, Eshant English and Wei-Cheng Lai for sharing their experience and expertise with us. Special thanks to Noel Danz who gave insightful tips and comments to help guide the project.
+
+
+## Used Github-repos
+- Unet implementation inspiration: <br/>
+https://github.com/Hsankesara/DeepResearch/blob/master/UNet/Unet.py <br/>
+
+- Adapted fuctions/classes like dice loss and focal tversky loss: <br/>
+https://github.com/Mr-TalhaIlyas/Loss-Functions-Package-Tensorflow-Keras-PyTorch <br/>
+
+- Used examples within the documentation: <br/>
+https://pytorch.org/docs/stable/index.html
