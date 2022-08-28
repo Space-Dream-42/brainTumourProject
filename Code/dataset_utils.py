@@ -37,6 +37,7 @@ def split_cube(input_batch, add_context):
     batch = dict()
     batch['image'] = input_batch['image'].clone()
     batch['label'] = input_batch['label'].clone()
+    del input_batch #
     
     # add zero-padding slices
     image_padding = (0,0, 0,0, 3,2, 0,0, 0,0)
@@ -83,6 +84,7 @@ def split_cube(input_batch, add_context):
     label_batch5 = batch['label'][:, :, 80:, :96,   96:]
     label_batch6 = batch['label'][:, :, 80:,  96:, :96]
     label_batch7 = batch['label'][:, :, 80:,  96:,  96:]
+    del batch #
     
     # assemble labels into batch
     minicube_batch['label'] = torch.cat(
@@ -105,6 +107,7 @@ def slice_cube(batch):
     batch['label'] = F.pad(batch['label'], label_padding, 'constant', 0)
     twod_images_batch['image'] = batch['image'].permute(2, 0, 1, 3, 4)
     twod_images_batch['label'] = batch['label'].permute(2, 0, 1, 3, 4)
+    del batch #
     return twod_images_batch
 
 

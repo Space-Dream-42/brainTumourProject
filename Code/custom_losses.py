@@ -77,23 +77,44 @@ def get_minicube_batch_loss(model, loss_fn, minicube_batch, step, device):
     Takes two minicubes from one image each step and return their loss.
     """
     number_of_cubes = int(minicube_batch['image'].shape[0]/4)
-    if step % 4 == 0:
-        voxel_logits_batch = model.forward(minicube_batch['image'][:number_of_cubes, :, :, :, :].to(device))
-        loss = loss_fn(voxel_logits_batch, minicube_batch['label'][:number_of_cubes, :, :, :].long().to(device))
 
-    elif step % 4 == 1:
-        voxel_logits_batch = model.forward(minicube_batch['image'][number_of_cubes:number_of_cubes*2, :, :, :, :].to(device))
-        loss = loss_fn(voxel_logits_batch, minicube_batch['label'][number_of_cubes:number_of_cubes*2, :, :, :].long().to(device))
+    # CrossEntropyLoss
+    if str(loss_fn) == 'CrossEntropyLoss()':
+        if step % 4 == 0:
+            voxel_logits_batch = model.forward(minicube_batch['image'][:number_of_cubes, :, :, :, :].to(device))
+            loss = loss_fn(voxel_logits_batch, minicube_batch['label'][:number_of_cubes, 0, :, :, :].long().to(device))
 
-    elif step % 4 == 2:
-        voxel_logits_batch = model.forward(minicube_batch['image'][number_of_cubes*2:number_of_cubes*3, :, :, :, :].to(device))
-        loss = loss_fn(voxel_logits_batch, minicube_batch['label'][number_of_cubes*2:number_of_cubes*3, :, :, :].long().to(device))
+        elif step % 4 == 1:
+            voxel_logits_batch = model.forward(minicube_batch['image'][number_of_cubes:number_of_cubes*2, :, :, :, :].to(device))
+            loss = loss_fn(voxel_logits_batch, minicube_batch['label'][number_of_cubes:number_of_cubes*2, 0, :, :, :].long().to(device))
 
+        elif step % 4 == 2:
+            voxel_logits_batch = model.forward(minicube_batch['image'][number_of_cubes*2:number_of_cubes*3, :, :, :, :].to(device))
+            loss = loss_fn(voxel_logits_batch, minicube_batch['label'][number_of_cubes*2:number_of_cubes*3, 0, :, :, :].long().to(device))
+
+        else:
+            voxel_logits_batch = model.forward(minicube_batch['image'][number_of_cubes*3:, :, :, :, :].to(device))
+            loss = loss_fn(voxel_logits_batch, minicube_batch['label'][number_of_cubes*3:, 0, :, :, :].long().to(device))
+    
+    # Other loss functions
     else:
-        voxel_logits_batch = model.forward(minicube_batch['image'][number_of_cubes*3:, :, :, :, :].to(device))
-        loss = loss_fn(voxel_logits_batch, minicube_batch['label'][number_of_cubes*3:, :, :, :].long().to(device))
-    return loss
+        if step % 4 == 0:
+            voxel_logits_batch = model.forward(minicube_batch['image'][:number_of_cubes, :, :, :, :].to(device))
+            loss = loss_fn(voxel_logits_batch, minicube_batch['label'][:number_of_cubes, :, :, :].long().to(device))
 
+        elif step % 4 == 1:
+            voxel_logits_batch = model.forward(minicube_batch['image'][number_of_cubes:number_of_cubes*2, :, :, :, :].to(device))
+            loss = loss_fn(voxel_logits_batch, minicube_batch['label'][number_of_cubes:number_of_cubes*2, :, :, :].long().to(device))
+
+        elif step % 4 == 2:
+            voxel_logits_batch = model.forward(minicube_batch['image'][number_of_cubes*2:number_of_cubes*3, :, :, :, :].to(device))
+            loss = loss_fn(voxel_logits_batch, minicube_batch['label'][number_of_cubes*2:number_of_cubes*3, :, :, :].long().to(device))
+
+        else:
+            voxel_logits_batch = model.forward(minicube_batch['image'][number_of_cubes*3:, :, :, :, :].to(device))
+            loss = loss_fn(voxel_logits_batch, minicube_batch['label'][number_of_cubes*3:, :, :, :].long().to(device))
+    del voxel_logits_batch
+    return loss
 
 
 def get_loss(model, loss_fn, has_minicubes, step, device, batch):
