@@ -47,7 +47,7 @@ def calc_loss(model, data_iter, architecture= "UNet3D"):
         elif architecture == "UNet3D_Mini":
             pred = segment_entire_3d_cube(model, instance, True, device)[2:157]
         elif architecture == "UNet2D":
-            pred = predict_whole_cube_2d(model, instance, device)[2:157]
+            pred = predict_whole_cube_2d(model, instance, device)
         pred = pred.numpy()
         label = instance['label'].numpy()[0,0]
         loss_list = hausdorff_loss(inputs = pred, targets=label)
