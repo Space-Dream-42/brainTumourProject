@@ -21,30 +21,48 @@ def train_model(model, optimizer, loss_fn, epochs, device, dataset_path, batch_s
         
         train_iter, test_iter = get_train_test_iters(dataset_path, batch_size=batch_size, shuffle=False, num_workers=0)
         epoch_train_losses = []
-
+        
         for step, raw_batch in enumerate(train_iter):
-            print(step)
+            print(f'epoch {epoch}: training step {step}/{len(train_iter)}', end='\r')
             # 3D model
             if train_3d:
-                batch = split_cube(raw_batch, add_context)  # Get a new batch of 3D minicubes
-                for step_within_image in range(4):
-                    loss = get_loss(model, loss_fn, train_3d, step_within_image, device, batch)
+                # SmallSegNet model
+                if model.__class__.__name__ == 'SmallSegNet':
+                    batch = raw_batch # Get a new batch of 3D cubes
+                    voxel_logits_batch = model.forward(batch['image'].to(device))
+                    loss = loss_fn(voxel_logits_batch, batch['label'][:, 0].long().to(device))
                     epoch_train_losses.append(loss.detach().cpu().numpy())
+                    del voxel_logits_batch
 
                     # backprop loss
                     optimizer.zero_grad()
                     loss.backward()
                     optimizer.step()
+                
+                # 3D and 3D with context UNet models
+                else:   
+                    batch = split_cube(raw_batch, add_context)  # Get a new batch of 3D minicubes
+                    for step_within_image in range(4):
+                        loss = get_loss(model, loss_fn, train_3d, step_within_image, device, batch)
+                        epoch_train_losses.append(loss.detach().cpu().numpy())
+
+                        # backprop loss
+                        optimizer.zero_grad()
+                        loss.backward()
+                        optimizer.step()
+            
             # 2D model
             else:
                 batch = slice_cube(raw_batch)  # Get a new batch of 2D slices
                 for step_within_image in range(160):
                     loss = get_loss(model, loss_fn, train_3d, step_within_image, device, batch)
                     epoch_train_losses.append(loss.detach().cpu().numpy())
+                    
                     # backprop loss
                     optimizer.zero_grad()
                     loss.backward()
                     optimizer.step()
+            del batch, loss #
         
         # calculate mean training loss of epoch
         mean_train_loss = np.mean(epoch_train_losses)
@@ -55,18 +73,32 @@ def train_model(model, optimizer, loss_fn, epochs, device, dataset_path, batch_s
             epoch_test_losses = []
 
             for step, raw_batch in enumerate(test_iter):
-                # 3D model
+                print(f'epoch {epoch}: calc test loss {step}/{len(test_iter)}    ', end='\r')
+                
+                # 3D models
                 if train_3d:
-                    batch = split_cube(raw_batch, add_context)  # Get a new batch of 3D minicubes
-                    for step_within_image in range(4):
-                        loss = get_loss(model, loss_fn, train_3d, step_within_image, device, batch)
+                    
+                    # SmallSegNet model
+                    if model.__class__.__name__ == 'SmallSegNet':
+                        batch = raw_batch # Get a new batch of 3D cubes
+                        voxel_logits_batch = model.forward(batch['image'].to(device))
+                        loss = loss_fn(voxel_logits_batch, batch['label'][:, 0].long().to(device))
                         epoch_test_losses.append(loss.detach().cpu().numpy())
+                        del voxel_logits_batch
+                
+                    # 3D and 3D with context UNet models
+                    else:
+                        batch = split_cube(raw_batch, add_context)  # Get a new batch of 3D minicubes
+                        for step_within_image in range(4):
+                            loss = get_loss(model, loss_fn, train_3d, step_within_image, device, batch)
+                            epoch_test_losses.append(loss.detach().cpu().numpy())
                 # 2D model
                 else:
                     batch = slice_cube(raw_batch)  # Get a new batch of 2D slices
                     for step_within_image in range(160):
                         loss = get_loss(model, loss_fn, train_3d, step_within_image, device, batch)
                         epoch_test_losses.append(loss.detach().cpu().numpy())
+                del batch, loss #
 
             mean_test_loss = np.mean(epoch_test_losses)
             test_losses.append(mean_test_loss) 
@@ -83,6 +115,11 @@ def train_model(model, optimizer, loss_fn, epochs, device, dataset_path, batch_s
             os.makedirs(weights_path)
         path = os.path.join('..', 'Weights', f'{model.__class__.__name__}_epoch{epoch}_loss{mean_train_loss:3.3f}.h5')
         torch.save(model.state_dict(), path)
+    
+    # save the losses
+    losses_path = os.path.join('..', 'Losses')
+    if not os.path.exists(losses_path):
+        os.makedirs(losses_path)
     np.save(os.path.join('..', 'Losses', f'{model.__class__.__name__}_train_loss'), train_losses)
     np.save(os.path.join('..', 'Losses', f'{model.__class__.__name__}_test_loss'), test_losses)
     return train_losses, test_losses
