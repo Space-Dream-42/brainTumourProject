@@ -59,7 +59,7 @@ Here you can find all model architectures that we build.
 
 
 ## Useful links
-[Our executive report]()  <br/>
+[Our executive report](executive_report.pdf)  <br/>
 [Github repo](https://github.com/Space-Dream-42/brainTumourProject) <br/>
 [Model files](https://drive.google.com/drive/folders/1pTMtH2817WEceukKP52Lep9QR-ZB2WKz?usp=sharing) <br/>
 
