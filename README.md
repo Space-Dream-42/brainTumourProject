@@ -18,7 +18,7 @@ BT_Segmentation_Project
     |_ Weights                      (trained model weights)
 ```
 3. Change into "Code" as a working directory
-4. Run "python3 setup_project.py" in your shell, to extract the nii-files to numpy file (Attention!: have in mind that the dataset needs 70+ GB of storage)
+4. Run "python3 setup_project.py" in your shell, to extract the nii-files to numpy file (Attention!: bear in mind that the dataset needs 70+ GB of storage)
 
 
 ### Additional ressources for our code
@@ -28,32 +28,32 @@ BT_Segmentation_Project
 ### Code Overview
 #### Notebooks
 - demo.ipynb:<br/>
-Here we are executed our code, extracted results from it and visualized our results for our paper. Every discovery that we mention in our paper comes from here.
+Here we present our model training along with evaluation metrics and animated visualizations. The majority of what we report in our paper is produced using this code.
 
 #### Python-files
 - custom_losses.py:<br/>
-Here you can find custom programmed losses. In addition you can find get_loss to calculate automatically the loss for a provieded loss-function. 
+Contains custom programmed losses. In addition you can find the get_loss function to automatically calculate the loss for a provided loss-function. 
 
 - data_loading.py:<br/>
-Here you can find the dataloader. The function get_train_test_iters gives you the data iterators. 
+This is the dataloader. The function get_train_test_iters gives you the data iterators. 
 
 - dataset_utils.py:<br/>
-Here you can find everything ragarding to manipulate and processing data.
+Here we coded all functions for manipulating and processing data.
 
 - train.py:<br/>
 Here you can find the train_model function to train a model.
 
 #### Folders
 - Optional:<br/>
-Here we are experimenting with our code.
+Here we stored additional experimental code that was not ultimately used in our trained models or demo.
 
 - Architectures:<br/>
-Here you can find all model architectures that we build.
+Here you can find all model architectures that we built.
 </details>
 
 
 <details>
-  <summary>File-structure figure (Click to expand)</summary>
+  <summary>File-structure figure (Click to expand)</summary>-
 <p align="left"><img src="https://github.com/Space-Dream-42/brainTumourProject/blob/main/images/filestructure.jpg?raw=true" width="700" height="500"></p>
 </details>
 
@@ -69,11 +69,11 @@ We would like to thank Prof. Dr. Chistoph Lippert, Tahir Miriyev, Noel Danz, Esh
 
 
 ## Used Github-repos
-- Unet implementation inspiration: <br/>
+- Inspiration for our U-Net implementation: <br/>
 https://github.com/Hsankesara/DeepResearch/blob/master/UNet/Unet.py <br/>
 
-- Adapted fuctions/classes like dice loss and focal tversky loss: <br/>
+- Basis for adapted fuctions/classes, such as dice loss and focaltversky loss: <br/>
 https://github.com/Mr-TalhaIlyas/Loss-Functions-Package-Tensorflow-Keras-PyTorch <br/>
 
-- Used examples within the documentation: <br/>
+- Reference was made to pytorch documentation throught the coding process: <br/>
 https://pytorch.org/docs/stable/index.html
