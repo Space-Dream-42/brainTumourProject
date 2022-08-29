@@ -68,7 +68,7 @@ def animate_cube(model, batch, add_context, device, is_3d=True):
         pred_cube = segment_entire_3d_cube(model, batch, add_context, device).cpu()
     else:
         pred_cube = predict_whole_cube_2d(model, batch, device)
-    label_slice = batch['label'][0, 0, :, :, :].cpu()
+    label_slice = batch['label'][0, 0].cpu()
     image_height = len(pred_cube)
     colors = [(0.3, 0.4, 0.7), (0.1, 0.9, 0.5), (0.9, 0.7, 0.2), (0.9, 0.4, 0.0)]
     cmap, norm = from_levels_and_colors([0, 1, 2, 3, 4], colors)

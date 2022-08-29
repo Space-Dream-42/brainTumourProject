@@ -7,6 +7,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from matplotlib import pyplot as plt
 
 
 Scans = {
@@ -113,17 +114,17 @@ def slice_cube(batch):
 
 def concat_minicubes(segmented_minicubes):
     
-    # concatenate along width-axis 
+    # concatenate along dim 2
     lower_part_0 = torch.cat((segmented_minicubes[0], segmented_minicubes[1]), dim=2)
     lower_part_1 = torch.cat((segmented_minicubes[2], segmented_minicubes[3]), dim=2)
     upper_part_0 = torch.cat((segmented_minicubes[4], segmented_minicubes[5]), dim=2)
     upper_part_1 = torch.cat((segmented_minicubes[6], segmented_minicubes[7]), dim=2)
     
-    # concatenate along 
+    # concatenate along dim 1
     whole_lower_part = torch.cat((lower_part_0, lower_part_1), dim=1)
     whole_upper_part = torch.cat((upper_part_0, upper_part_1), dim=1)
     
-    # concatenate along height-axis
+    # concatenate along dim 0
     segmented_cube = torch.cat((whole_lower_part, whole_upper_part), dim=0)
     return segmented_cube
 
