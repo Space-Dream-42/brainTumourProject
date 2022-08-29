@@ -4,7 +4,8 @@ import os
 
 class BraTS_Dataset():
     """
-    Custom DataSet-class. Can be used for training or test dataset.
+    This custom Dataset class can be used as a training or test dataset.
+    It requires that the data path is specified.
     """
     def __init__(self, path, dataset_type='training'):
         self.path = path  # this should be the root dir for extracted (or cropped) files
@@ -31,10 +32,8 @@ class BraTS_Dataset():
 
     def __getitem__(self, idx):
         """
-        Loads and returns a single sample in the form of a dictionary
-        with keys 'image' and 'label'.
-        The function returns the sample at the given index (idx)
-        by finding the path and returning the numpy array.
+        Loads and returns a single sample at a given index (idx) as a dictionary 
+        with keys 'image' and 'label' that includes the according numpy arrays.
         """
         if self.dataset_type == 'training':
             idx = idx % 400
@@ -71,14 +70,17 @@ class BraTS_Dataset():
 
 def get_train_test_iters(path, batch_size=1, shuffle=True, num_workers=0):
     """
-    Transforms the custom Dataset-class into torch.DataLoaders and puts an iterator around them.
+    Returns data iterators for the custom dataset.
+    The iterators need to be reset (call this function again) after each epoch of training.
     """
     train_data = BraTS_Dataset(path, dataset_type='training')
     test_data = BraTS_Dataset(path, dataset_type='test')
+    
     trainloader = torch.utils.data.DataLoader(
         train_data, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
     testloader = torch.utils.data.DataLoader(
         test_data, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+    
     train_iter = iter(trainloader)
     test_iter = iter(testloader)
     return train_iter, test_iter

@@ -1,9 +1,3 @@
-# This file provides the following utility functions and classes:
-# split_cube function for getting minicubes
-# plot_batch function
-# crop_batch and decrop_batch functions
-# ...
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -21,6 +15,7 @@ Labels = {
     1: 'edema',
     2: 'non-enhancing tumor',
     3: 'enhancing tumour'}
+
 
 def split_cube(input_batch, add_context):
     """
@@ -113,6 +108,9 @@ def slice_cube(batch):
 
 
 def concat_minicubes(segmented_minicubes):
+    """
+    Returns an entire segmented cube by concatenating minicube-predictions in a given input batch.
+    """
     
     # concatenate along dim 2
     lower_part_0 = torch.cat((segmented_minicubes[0], segmented_minicubes[1]), dim=2)
@@ -188,8 +186,7 @@ def crop_batch(img_batch):
 def decrop_batch(img_batch):
     """
     Decrops a batch of images by applying zero-padding (zero is the background-label),
-    but also works on just a single image.
-    Output size per slice is (240, 240).
+    but also works on just a single image. Output size per slice is (240, 240).
     """
     decropped_batch = F.pad(img_batch, (19,29,19,29), 'constant', 0)
     return decropped_batch

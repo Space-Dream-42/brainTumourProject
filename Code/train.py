@@ -8,7 +8,7 @@ from data_loading import get_train_test_iters
 
 def train_model(model, optimizer, loss_fn, epochs, device, dataset_path, batch_size, train_3d, add_context, compute_test_loss):
     """
-    Trains the given 2D or 3D model and saves the trained weights once per epoch.
+    Trains a given 2D or 3D model and saves the trained weights once per epoch.
     Returns the train and test losses.
     """
     # training settings

@@ -8,7 +8,7 @@ import seg_metrics.seg_metrics as sg
 
 class DiceLoss(nn.Module):
     """
-    Computes the dice-loss for each output-channel of the model.
+    Returns the dice-loss for each output-channel of the model.
     The label has to be split into 4 images to achieve this.
     """
     def __init__(self, weight=None, size_average=True):
@@ -25,6 +25,9 @@ class DiceLoss(nn.Module):
 
 
 def dice_loss_one_image(inputs, targets, smooth=1):
+    """
+    Returns the dice loss for a given 2d slice.
+    """
     inputs = torch.sigmoid(inputs)
 
     # flatten label and prediction tensors
@@ -56,6 +59,9 @@ class FocalTverskyLoss(nn.Module):
 
 
 def focaltversky_loss_one_image(inputs, targets, smooth=1, alpha=0.7, beta=0.3, gamma=4/3):
+    """
+    Returns the focaltversky loss for a given 2d slice.
+    """
     inputs = torch.sigmoid(inputs)
 
     # flatten label and prediction tensors
@@ -75,11 +81,12 @@ def focaltversky_loss_one_image(inputs, targets, smooth=1, alpha=0.7, beta=0.3, 
 
 def get_minicube_batch_loss(model, loss_fn, minicube_batch, step, device):
     """
-    Takes two minicubes from one image each step and return their loss.
+    Returns the loss for two minicubes from a 3d MR scan.
+    The position of the minicubes is determined by the current step.
     """
     number_of_cubes = int(minicube_batch['image'].shape[0]/4)
 
-    # CrossEntropyLoss
+    # CrossEntropyLoss (needs different dimensions for the label than all other losses)
     if str(loss_fn) == 'CrossEntropyLoss()':
         if step % 4 == 0:
             voxel_logits_batch = model.forward(minicube_batch['image'][:number_of_cubes, :, :, :, :].to(device))
@@ -117,14 +124,18 @@ def get_minicube_batch_loss(model, loss_fn, minicube_batch, step, device):
     del voxel_logits_batch
     return loss
 
-def hausdorff_loss(inputs, targets):
-        return sg.write_metrics(labels=[0,1,2,3],gdth_img=targets,pred_img=inputs,metrics='hd95')[0]['hd95']
 
+def hausdorff_loss(inputs, targets):
+    """
+    Returns the hausdorff loss.
+    """
+    return sg.write_metrics(labels=[0,1,2,3],gdth_img=targets,pred_img=inputs,metrics='hd95')[0]['hd95']
 
 
 def get_loss(model, loss_fn, has_minicubes, step, device, batch):
     """
-    Adapts the calculation of the loss to the shape of the model.
+    This high-level function adapts the calculation of the loss according to the used model.
+    Returns the loss for a batch according to the specified loss function.
     """
     if has_minicubes:
         loss = get_minicube_batch_loss(model, loss_fn, batch, step, device)

@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import from_levels_and_colors
 from matplotlib.animation import FuncAnimation
@@ -11,11 +11,11 @@ import seaborn as sn
 import pandas as pd
 from sklearn.metrics import confusion_matrix
 from dataset_utils import split_cube, slice_cube
-import numpy as np
 
 def plot_batch(batch, num_rows=2, height=70):
-    
-    # plt.clf()
+    """
+    Plots inputs of the input batch at a given height.
+    """
     fig, ax_array = plt.subplots(num_rows, 4, figsize=(12,6), 
                                  gridspec_kw = {'wspace':0, 'hspace':0})
     
@@ -29,13 +29,14 @@ def plot_batch(batch, num_rows=2, height=70):
             # modalities
             indices = [col_idx + (4*row) for col_idx in range(4)]
             if i in indices:
-                ax.imshow(x[i%4, height, :, :], cmap="gray", origin="lower")
-                
+                ax.imshow(x[i%4, height, :, :], cmap="gray", origin="lower")   
     plt.show()
-    #plt.close()
 
 
 def _plot_slice(pred_slice, label_slice):
+    """
+    Plots the prediction next to the label of a given 2d slice for comparing the two. 
+    """
     colors = [(0.3,0.4,0.7),(0.1, 0.9, 0.5),(0.9,0.7,0.2), (0.9,0.4,0.0)]
     
     plt.rcParams.update({'axes.labelsize': 14})
@@ -44,7 +45,6 @@ def _plot_slice(pred_slice, label_slice):
     slice_labels = ['prediction', 'label']
     fig, axes = plt.subplots(ncols=2)
     fig.set_size_inches(10, 5)
-
     
     for ax, data, slice_label in zip(axes, [pred_slice, label_slice], slice_labels):
         im = ax.imshow(data, 
@@ -59,10 +59,12 @@ def _plot_slice(pred_slice, label_slice):
     plt.show()
     plt.close()
 
+
 def animate_cube(model, batch, add_context, device, is_3d=True):
     """
-    Plots a horizontal slice of the MRI-Image for every fourth image starting from the bottom.
-    All four input channels, the segmentation and the label is plotted.
+    Returns a animation by looping through 2d slices of the 3d input batch.
+    Plots every fourth axial slice of the 3d MR scan starting from the bottom.
+    Plots all four input channels, the predicted segmentation and the label.
     """
     if is_3d:
         pred_cube = segment_entire_3d_cube(model, batch, add_context, device).cpu()
@@ -108,16 +110,12 @@ def animate_cube(model, batch, add_context, device, is_3d=True):
     return ani
 
 
-
-
 def plot_minicube_pred_label(model, minicube_batch, device, minicube_idx, height=70):
     """
     Takes a batch of minicubes as input and outputs a comparison plot between a slice 
     of the prediction on a minicube and the label of the minicube
     at the given height of the minicube at the given index in the batch.
     """
-    
-    # make prediction for minicube
     voxel_logits_batch = model.forward(minicube_batch['image'][None, minicube_idx,:,:,:,:].to(device))
     
     sm = nn.Softmax(dim=1)
@@ -135,7 +133,6 @@ def plot_cube_pred_label(model, batch, add_context, device, height=70):
     Takes a raw 3d batch as input and outputs a comparison plot between 
     a slice of the prediction and the label at the given height.
     """
-    # make prediction on entire cube
     segmented_cube = segment_entire_3d_cube(model, batch, add_context, device)
     
     pred_slice = segmented_cube[height, :, :].cpu()
@@ -145,6 +142,9 @@ def plot_cube_pred_label(model, batch, add_context, device, height=70):
 
 
 def plot_loss(train_losses, test_losses):
+    """
+    Plots the train loss and if specified also test loss of a training session.
+    """
     plt.plot(train_losses, label='training loss')
     if test_losses is not None:
         plt.plot(test_losses, label='test loss')
@@ -152,9 +152,14 @@ def plot_loss(train_losses, test_losses):
     plt.ylabel('loss', fontsize=14)
     plt.legend()
     plt.show()
-    plt.close()
+
 
 def plot_confusion_matrix(test_iter, model, train_3d, add_context, device):
+    """
+    Computes and plots a confusion matrix for the test dataset.
+    This function is highly susceptible to crashes due to the memory intensive computation.
+    Returns a plot and dataframe of the confusion matrix.
+    """
     model = model.to(device)
     sm = nn.Softmax(dim=1)
     y_pred = []
@@ -201,6 +206,10 @@ def plot_confusion_matrix(test_iter, model, train_3d, add_context, device):
 
 
 def get_positives_negatives_from_cm(cf_matrix):
+    """
+    Prints different evaluation metrics that are extracted 
+    from a given confusion matrix dataframe. 
+    """
     tp = []
     fp = []
     tn = []
@@ -224,4 +233,3 @@ def get_positives_negatives_from_cm(cf_matrix):
         print(f'recall: {recall:.3f}')
         print(f'accuracy: {tp[i]/(tp[i]+tn[i]+fn[i]+fp[i]):.3f}')
         print(f'f1_score: {(2*precision*recall)/(precision+recall):.3f}\n')
-
