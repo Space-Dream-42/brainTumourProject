@@ -21,6 +21,9 @@ test_labels_dir = os.path.join(data_dir, "labelsTs")
 
 
 def delete_folder(folder_path):
+    """
+    Deletes a folder at the specified path.
+    """
     file_paths = glob.glob(os.path.join(folder_path, "*"))
 
     for f in file_paths:
@@ -28,13 +31,25 @@ def delete_folder(folder_path):
     
     shutil.rmtree(folder_path)
 
+
 def delete_imagesTs():
+    """
+    Deletes the folder with extracted test images.
+    """
     delete_folder(os.path.join(dataset_dir, "imagesTs"))
 
+
 def folder_structure_exits():
+    """
+    Returns True if the Data direcory exists, else False.
+    """
     return os.path.exists(os.path.join(parent_dir, 'Data'))
     
+    
 def create_folder_structure():
+    """
+    Creates all necessary directorys to set up the project. 
+    """
     os.mkdir(data_dir)
     os.mkdir(train_images_dir)
     os.mkdir(train_labels_dir)
@@ -43,16 +58,33 @@ def create_folder_structure():
 
 
 def get_numpy_arr_of_nii_file(path):
+    """
+    Returns a given nii file as a numpy file.
+    """
     sitk_arr = sitk.ReadImage(path)
     return sitk.GetArrayFromImage(sitk_arr)
+   
     
 def crop_image_arr(arr):
+    """
+    Returns a cropped version of the given 3d input cube to reduce
+    the large amount of background.  
+    """
     return arr[:, :, 19:211, 19:211]
 
+
 def crop_label_arr(arr):
+    """
+    Returns a cropped version of the given 3d label to reduce
+    the large amount of background.  
+    """
     return arr[:,19:211, 19:211]
 
+
 def delete_original_dataset():
+    """
+    Deletes the extracted dataset.
+    """
     json_file_path = os.path.join(dataset_dir, "dataset.json")
     labels_path = os.path.join(dataset_dir, "labelsTr")
     images_path = os.path.join(dataset_dir, "imagesTr")
@@ -61,20 +93,29 @@ def delete_original_dataset():
     delete_folder(images_path)
     os.remove(json_file_path)
 
+
 def get_file_names():
+    """
+    Returns a list of all training file names.
+    """
     with open(os.path.join(dataset_dir,'dataset.json')) as json_file:
         data = json.load(json_file)
         train_filenames = data['training']
     
     return train_filenames
 
+
 def extract_crop_and_save_image_and_label_file(image_path_relative, label_path_relative, file_name, train):
+    """
+    Saves the cropped version of a given pair of image and label files.
+    """
     if train:
         images_dir = train_images_dir
         labels_dir = train_labels_dir
     else:
         images_dir = test_images_dir
         labels_dir = test_labels_dir
+    
     # extract and save image
     img_path = os.path.join(dataset_dir, image_path_relative)
     img_arr = crop_image_arr(get_numpy_arr_of_nii_file(img_path))
@@ -104,8 +145,7 @@ def main():
     file_names = get_file_names()
     print("Extracting filenames of json-file is done!")
 
-
-    # 80/20 train-test-split
+    # perform a train-test-split
     num_of_train_files = 400
     num_of_test_files = 84
 
@@ -135,7 +175,6 @@ def main():
     print("Deleting the original dataset.", end="\r")
     delete_original_dataset()
     print("Deleting the original dataset is done!")
-
 
 
 if __name__ == "__main__":
