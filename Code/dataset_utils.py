@@ -7,6 +7,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from matplotlib import pyplot as plt
 
 
 Scans = {
@@ -37,6 +38,7 @@ def split_cube(input_batch, add_context):
     batch = dict()
     batch['image'] = input_batch['image'].clone()
     batch['label'] = input_batch['label'].clone()
+    del input_batch #
     
     # add zero-padding slices
     image_padding = (0,0, 0,0, 3,2, 0,0, 0,0)
@@ -83,6 +85,7 @@ def split_cube(input_batch, add_context):
     label_batch5 = batch['label'][:, :, 80:, :96,   96:]
     label_batch6 = batch['label'][:, :, 80:,  96:, :96]
     label_batch7 = batch['label'][:, :, 80:,  96:,  96:]
+    del batch #
     
     # assemble labels into batch
     minicube_batch['label'] = torch.cat(
@@ -105,22 +108,23 @@ def slice_cube(batch):
     batch['label'] = F.pad(batch['label'], label_padding, 'constant', 0)
     twod_images_batch['image'] = batch['image'].permute(2, 0, 1, 3, 4)
     twod_images_batch['label'] = batch['label'].permute(2, 0, 1, 3, 4)
+    del batch #
     return twod_images_batch
 
 
 def concat_minicubes(segmented_minicubes):
     
-    # concatenate along width-axis 
+    # concatenate along dim 2
     lower_part_0 = torch.cat((segmented_minicubes[0], segmented_minicubes[1]), dim=2)
     lower_part_1 = torch.cat((segmented_minicubes[2], segmented_minicubes[3]), dim=2)
     upper_part_0 = torch.cat((segmented_minicubes[4], segmented_minicubes[5]), dim=2)
     upper_part_1 = torch.cat((segmented_minicubes[6], segmented_minicubes[7]), dim=2)
     
-    # concatenate along 
+    # concatenate along dim 1
     whole_lower_part = torch.cat((lower_part_0, lower_part_1), dim=1)
     whole_upper_part = torch.cat((upper_part_0, upper_part_1), dim=1)
     
-    # concatenate along height-axis
+    # concatenate along dim 0
     segmented_cube = torch.cat((whole_lower_part, whole_upper_part), dim=0)
     return segmented_cube
 

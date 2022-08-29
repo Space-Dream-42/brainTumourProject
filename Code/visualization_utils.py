@@ -68,7 +68,7 @@ def animate_cube(model, batch, add_context, device, is_3d=True):
         pred_cube = segment_entire_3d_cube(model, batch, add_context, device).cpu()
     else:
         pred_cube = predict_whole_cube_2d(model, batch, device)
-    label_slice = batch['label'][0, 0, :, :, :].cpu()
+    label_slice = batch['label'][0, 0].cpu()
     image_height = len(pred_cube)
     colors = [(0.3, 0.4, 0.7), (0.1, 0.9, 0.5), (0.9, 0.7, 0.2), (0.9, 0.4, 0.0)]
     cmap, norm = from_levels_and_colors([0, 1, 2, 3, 4], colors)
@@ -160,6 +160,7 @@ def plot_confusion_matrix(test_iter, model, train_3d, add_context, device):
     y_pred = []
     y_true = []
     for i, raw_batch in enumerate(test_iter):
+        print(f'batch {i+1}/{len(test_iter)}', end='\r')
         if train_3d:
             batch = split_cube(raw_batch, add_context)
         else:
@@ -167,19 +168,18 @@ def plot_confusion_matrix(test_iter, model, train_3d, add_context, device):
 
         inputs = batch['image'].to(device)
         labels = batch['label'].to(device)
+        del batch
         # 3d model
         if train_3d:
             for i in range(8):
-                prediction = model.forward(batch['image'][None, i, :, :, :, :].to(device))
+                prediction = model.forward(inputs[None, i, :, :, :, :])
                 probs, out = torch.max(prediction, dim=1)
                 y_pred += torch.flatten(out).cpu()
                 y_true += torch.flatten(labels[i]).cpu()
                 del prediction, probs, out
-                print(i)
 
         # 2d model
         else:
-            #output = torch.zeros((160, 4, 192, 192))
             print(model(inputs[i]).shape)
             for i in range(160):
                 output = model(inputs[i])
@@ -188,9 +188,12 @@ def plot_confusion_matrix(test_iter, model, train_3d, add_context, device):
                 y_pred += torch.flatten(out).cpu()
                 label_slice = labels[i]
                 y_true += torch.flatten(label_slice).cpu()
-
+                del output, label_slice, probs, out
+    print('Creating confusion matrix...')
+    del test_iter
     classes = [Labels[i] for i in range(4)]
     cf_matrix = confusion_matrix(y_true, y_pred)
+    del y_true, y_pred
     df_cm = pd.DataFrame(cf_matrix, index=[i for i in classes], columns=[i for i in classes])
     plt.figure(figsize=(12, 7))
     sn.heatmap(df_cm, annot=True)
