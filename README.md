@@ -1,4 +1,7 @@
-# <div align="center">Brain Tumour Segmentation (BraTS) <br/> using an U-Net architecture</div>
+## 
+# <div align="center">Brain Tumour Segmentation (BraTS) on the Basis of a <br/> U-Net architecture</div>
+# <div align="center">![animated_results](https://user-images.githubusercontent.com/89709351/187308267-0b8bdd49-5024-40db-8efe-43ab2a0bc842.gif)</div>
+
 
 ## How to run our code
 ### Set up the project
