@@ -249,7 +249,7 @@ class Small_UNet3D(nn.Module):
         self.out_conv = nn.Sequential(
             nn.Conv3d(in_channels=num_classes, out_channels=num_classes,
                       kernel_size=3, stride=1, padding=1),
-            nn.ReLU(),
+            #nn.ReLU(),
         )
 
     def forward(self, x):
