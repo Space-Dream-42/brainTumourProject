@@ -18,10 +18,11 @@ class DiceLoss(nn.Module):
         loss_count = 0
         for i in range(len(inputs[0])):
             current_class = targets.clone()
-            current_class[current_class != i] = 0
-            current_class[current_class == i] = 1
-            loss_count += dice_loss_one_image(inputs[:, i], current_class)
-        return loss_count / 4
+            current_class[current_class != i] = 10
+            current_class[current_class == i] = 11
+            current_class = current_class - 10
+            loss_count += dice_loss_one_image(inputs[:, i], current_class)*(i*2+1)
+        return loss_count / 16
 
 
 def dice_loss_one_image(inputs, targets, smooth=1):
@@ -52,10 +53,11 @@ class FocalTverskyLoss(nn.Module):
         loss_count = 0
         for i in range(len(inputs[0])):
             current_class = targets.clone()
-            current_class[current_class != i] = 0
-            current_class[current_class == i] = 1
-            loss_count += focaltversky_loss_one_image(inputs[:, i], current_class)
-        return loss_count / 4
+            current_class[current_class != i] = 10
+            current_class[current_class == i] = 11
+            current_class = current_class - 10
+            loss_count += focaltversky_loss_one_image(inputs[:, i], current_class)*(i*2+1)
+        return loss_count / 16
 
 
 def focaltversky_loss_one_image(inputs, targets, smooth=1, alpha=0.7, beta=0.3, gamma=4/3):
