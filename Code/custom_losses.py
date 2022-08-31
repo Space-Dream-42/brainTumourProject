@@ -23,7 +23,7 @@ class DiceLoss(nn.Module):
             current_class[current_class == i] = 11
             current_class = current_class-10
             loss_count[i] = dice_loss_one_image(inputs[:, i], current_class)*(i*2+1)
-        return loss_count.sum() / 4
+        return loss_count.sum() / 16
 
 
 def dice_loss_one_image(inputs, targets, smooth=1):
