@@ -5,7 +5,7 @@
 
 ## How to run our code
 ### Set up the project
-0. Ensure required packages are installed on your system ( > pip install -r requirements.txt )
+0. Ensure required packages, listed in Code/requirements.txt, are installed on your system ( > pip install -r requirements.txt )
 1. Download "Task01_BrainTumour.tar" under the [Medical Segmentation Decathlon](http://medicaldecathlon.com) website and extract the tar file.
 2. Provide the following folder structure:
 ```
