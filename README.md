@@ -19,7 +19,7 @@ BT_Segmentation_Project
        |_ imagesTr                  (here are the compressed nii-files)
        |_ labelsTr
        |_ imagesTs
-    |_ Weights                      (trained model weights, see section "Useful links")
+    |_ Weights                      (trained model files, see section "Useful links")
 ```
 3. Change into "Code" as a working directory
 4. Run "python3 setup_project.py" in your shell, to extract the nii-files to numpy file (Attention!: bear in mind that the dataset needs 70+ GB of storage)
