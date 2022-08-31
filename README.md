@@ -79,4 +79,7 @@ https://github.com/Hsankesara/DeepResearch/blob/master/UNet/Unet.py <br/>
 https://github.com/Mr-TalhaIlyas/Loss-Functions-Package-Tensorflow-Keras-PyTorch <br/>
 
 - Reference was made to pytorch documentation throught the coding process: <br/>
-https://pytorch.org/docs/stable/index.html
+https://pytorch.org/docs/stable/index.html <br/>
+
+- Basis for the 2D Unet: <br/>
+https://github.com/mateuszbuda/brain-segmentation-pytorch
