@@ -1,0 +1,10 @@
+torch
+seg-metrics
+numpy
+matplotlib
+SimpleITK
+seaborn
+pandas
+scikit-learn
+tqdm 
+Pillow
