@@ -8,37 +8,35 @@ import seg_metrics.seg_metrics as sg
 
 class DiceLoss(nn.Module):
     """
-    Returns the dice-loss for each output-channel of the model.
+    Computes the dice-loss for each output-channel of the model.
     The label has to be split into 4 images to achieve this.
     """
     def __init__(self, weight=None, size_average=True):
         super(DiceLoss, self).__init__()
 
     def forward(self, inputs, targets):
-        loss_count = 0
+        loss_count = torch.zeros(4)
+        sm = nn.Softmax(dim=1)
+        inputs = sm(inputs.float())
         for i in range(len(inputs[0])):
             current_class = targets.clone()
             current_class[current_class != i] = 10
             current_class[current_class == i] = 11
-            current_class = current_class - 10
-            loss_count += dice_loss_one_image(inputs[:, i], current_class)*(i*2+1)
-        return loss_count / 16
+            current_class = current_class-10
+            loss_count[i] = dice_loss_one_image(inputs[:, i], current_class)*(i*2+1)
+        return loss_count.sum() / 16
 
 
 def dice_loss_one_image(inputs, targets, smooth=1):
-    """
-    Returns the dice loss for a given 2d slice.
-    """
-    inputs = torch.sigmoid(inputs)
 
     # flatten label and prediction tensors
-    inputs = inputs.view(-1)
-    targets = targets.view(-1)
+    inputs = inputs.contiguous().view(-1)
+    targets = targets.contiguous().view(-1)
 
     intersection = (inputs * targets).sum()
     dice = (2. * intersection + smooth) / (inputs.sum() + targets.sum() + smooth)
 
-    return 1 - dice
+    return (1 - dice)
 
 
 class FocalTverskyLoss(nn.Module):
